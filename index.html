@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>金融系統儀表板 Pro v2.1 - 雲端版</title>
+    <title>金融系統儀表板 Pro v2.3 - 完整版</title>
     
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -19,7 +19,7 @@
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
             border-radius: 15px;
@@ -57,11 +57,12 @@
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             color: #666;
             transition: all 0.3s ease;
             white-space: nowrap;
+            min-width: fit-content;
         }
         
         .tab-btn:hover {
@@ -77,6 +78,8 @@
         .tab-content {
             display: none;
             padding: 30px;
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
         }
         
         .tab-content.active {
@@ -173,6 +176,15 @@
         
         .btn-secondary:hover {
             background: #718096;
+        }
+        
+        .btn-info {
+            background: #4299e1;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background: #3182ce;
         }
         
         .status-light {
@@ -289,9 +301,54 @@
             background: white;
             padding: 30px;
             border-radius: 10px;
-            max-width: 500px;
+            max-width: 600px;
             width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .stat-box-value {
+            font-size: 28px;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        
+        .stat-box-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        
+        table th {
+            background: #f5f5f5;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        table tr:hover {
+            background: #f9f9f9;
         }
     </style>
 </head>
@@ -299,46 +356,501 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <h1>📊 金融系統儀表板 Pro v2.1</h1>
-            <p>☁️ 雲端版 | 全設備同步 | 實時更新</p>
+            <h1>📊 金融系統儀表板 Pro v2.3</h1>
+            <p>☁️ 雲端版 | 6 大功能模組 | 全設備同步 | 實時更新</p>
             <p id="syncStatus" style="margin-top: 10px; font-size: 12px; opacity: 0.8;">🔄 連接中...</p>
         </div>
         
         <!-- Tabs -->
         <div class="tabs">
-            <button class="tab-btn active" onclick="app.switchTab(event, 'dashboard')">📈 儀表板</button>
+            <button class="tab-btn active" onclick="app.switchTab(event, 'dashboard')">📊 儀表板</button>
+            <button class="tab-btn" onclick="app.switchTab(event, 'etf-tracker')">📈 ETF 追蹤</button>
+            <button class="tab-btn" onclick="app.switchTab(event, 'portfolio')">💰 投資組合</button>
+            <button class="tab-btn" onclick="app.switchTab(event, 'risk')">⚠️ 風險評估</button>
+            <button class="tab-btn" onclick="app.switchTab(event, 'cashflow')">💵 現金流</button>
+            <button class="tab-btn" onclick="app.switchTab(event, 'derivatives')">📉 衍生品</button>
             <button class="tab-btn" onclick="app.switchTab(event, 'api-config')">🔑 API 配置</button>
-            <button class="tab-btn" onclick="app.switchTab(event, 'settings')">⚙️ 系統設置</button>
-            <button class="tab-btn" onclick="app.switchTab(event, 'formulas')">📐 計算公式</button>
-            <button class="tab-btn" onclick="app.switchTab(event, 'cloud-sync')">☁️ 雲端同步</button>
+            <button class="tab-btn" onclick="app.switchTab(event, 'settings')">⚙️ 設置</button>
         </div>
         
-        <!-- Tab Contents -->
+        <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-content active">
             <div class="card">
-                <div class="card-header">📊 歡迎使用金融系統儀表板</div>
-                <p style="margin-bottom: 15px;">
-                    這是一個功能完整的金融分析儀表板，所有數據都會自動同步到雲端，支持跨設備訪問。
-                </p>
-                <div style="background: #edf2f7; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
-                    <strong>✨ 功能清單：</strong>
-                    <ul style="margin-top: 10px; margin-left: 20px;">
-                        <li>✅ API 配置管理（多個提供商）</li>
-                        <li>✅ 實時 API 連接測試</li>
-                        <li>✅ 系統設置保存</li>
-                        <li>✅ 自定義計算公式</li>
-                        <li>✅ ☁️ 雲端數據同步</li>
-                        <li>✅ 📱 全設備支持</li>
-                    </ul>
+                <div class="card-header">📊 金融儀表板</div>
+                <p style="margin-bottom: 15px;">歡迎使用完整的金融分析系統。此版本包含 6 大功能模組，所有數據自動同步到雲端。</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div class="stat-box">
+                        <div class="stat-box-label">總資產</div>
+                        <div class="stat-box-value" id="totalAssets">$0.00</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-box-label">總收益</div>
+                        <div class="stat-box-value" id="totalGain" style="color: #48bb78;">+0.00%</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-box-label">持倉數量</div>
+                        <div class="stat-box-value" id="holdingCount">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-box-label">月度被動收入</div>
+                        <div class="stat-box-value" id="monthlyIncome">$0.00</div>
+                    </div>
                 </div>
-                <div class="sync-status">
-                    <span id="syncStatusIcon">🔄</span>
-                    <span id="syncStatusText">連接中...</span>
+            </div>
+
+            <div class="card">
+                <div class="card-header">🎯 6 大功能模組總覽</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+                    <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; border-radius: 5px;">
+                        <div style="font-weight: 600; color: #1565c0; margin-bottom: 8px;">📈 ETF 追蹤器</div>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #555;">
+                            <li>實時 ETF 查詢 (6 個熱門 ETF)</li>
+                            <li>監控清單管理</li>
+                            <li>5 年 / 10 年 CAGR 參考</li>
+                        </ul>
+                    </div>
+
+                    <div style="background: #f3e5f5; border-left: 4px solid #9c27b0; padding: 15px; border-radius: 5px;">
+                        <div style="font-weight: 600; color: #6a1b9a; margin-bottom: 8px;">💰 投資組合管理</div>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #555;">
+                            <li>新增 / 刪除持倉</li>
+                            <li>成本與現值計算</li>
+                            <li>ROI 與收益統計</li>
+                        </ul>
+                    </div>
+
+                    <div style="background: #ffebee; border-left: 4px solid #f44336; padding: 15px; border-radius: 5px;">
+                        <div style="font-weight: 600; color: #c62828; margin-bottom: 8px;">⚠️ 風險評估</div>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #555;">
+                            <li>風險等級評分 (1-10)</li>
+                            <li>波動率與回撤監控</li>
+                            <li>對沖建議</li>
+                        </ul>
+                    </div>
+
+                    <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 15px; border-radius: 5px;">
+                        <div style="font-weight: 600; color: #2e7d32; margin-bottom: 8px;">💵 現金流計算</div>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #555;">
+                            <li>被動收入計算</li>
+                            <li>生活方式等價</li>
+                            <li>高收益資產推薦</li>
+                        </ul>
+                    </div>
+
+                    <div style="background: #fce4ec; border-left: 4px solid #e91e63; padding: 15px; border-radius: 5px;">
+                        <div style="font-weight: 600; color: #ad1457; margin-bottom: 8px;">📉 衍生品策略</div>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #555;">
+                            <li>賣出看跌期權計算</li>
+                            <li>保護性買權成本</li>
+                            <li>風險控制度量</li>
+                        </ul>
+                    </div>
+
+                    <div style="background: #fff9e6; border-left: 4px solid #f39c12; padding: 15px; border-radius: 5px;">
+                        <div style="font-weight: 600; color: #d68910; margin-bottom: 8px;">🔐 API 與設置</div>
+                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #555;">
+                            <li>多個 API 提供商配置</li>
+                            <li>系統設置管理</li>
+                            <li>公式自定義</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <!-- API 配置 Tab -->
+
+        <!-- ETF Tracker Tab -->
+        <div id="etf-tracker" class="tab-content">
+            <div class="card">
+                <div class="card-header">📈 ETF 追蹤器</div>
+                
+                <div class="form-group">
+                    <label class="form-label">🔍 搜尋 ETF 代碼:</label>
+                    <input type="text" id="etfSearchInput" class="form-input" placeholder="例如：QQQ" onkeyup="app.etf.searchETF()">
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <strong style="font-size: 13px;">⭐ 熱門 ETF 快速查詢:</strong>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;">
+                        <button class="btn btn-primary" onclick="app.etf.quickSearch('QQQ')" style="margin: 0; padding: 8px 12px;">QQQ</button>
+                        <button class="btn btn-primary" onclick="app.etf.quickSearch('VGT')" style="margin: 0; padding: 8px 12px;">VGT</button>
+                        <button class="btn btn-primary" onclick="app.etf.quickSearch('SMH')" style="margin: 0; padding: 8px 12px;">SMH</button>
+                        <button class="btn btn-primary" onclick="app.etf.quickSearch('VOO')" style="margin: 0; padding: 8px 12px;">VOO</button>
+                        <button class="btn btn-primary" onclick="app.etf.quickSearch('XLK')" style="margin: 0; padding: 8px 12px;">XLK</button>
+                        <button class="btn btn-primary" onclick="app.etf.quickSearch('ARKK')" style="margin: 0; padding: 8px 12px;">ARKK</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">📊 ETF 詳細資訊表</div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>代碼</th>
+                                <th>名稱</th>
+                                <th>類型</th>
+                                <th>5 年 CAGR</th>
+                                <th>10 年 CAGR</th>
+                                <th>描述</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="etfTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">🎯 我的 ETF 監控清單</div>
+                <div id="watchlistContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;"></div>
+                <div id="emptyWatchlist" style="text-align: center; padding: 40px; color: #999; background: #f9f9f9; border-radius: 5px;">
+                    <p style="margin: 0; font-size: 14px;">📌 還沒有監控任何 ETF</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Portfolio Tab -->
+        <div id="portfolio" class="tab-content">
+            <div class="card">
+                <div class="card-header">💰 投資組合管理</div>
+                <p style="margin-bottom: 15px; font-size: 13px; color: #666;">管理你的投資持倉，追蹤成本、現值、收益率。</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">➕ 新增持倉</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">票代碼 | Ticker:</label>
+                        <input type="text" id="portfolioTicker" class="form-input" placeholder="例如：AAPL">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">股數 | Shares:</label>
+                        <input type="number" id="portfolioShares" class="form-input" placeholder="100" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">買入價 | Cost/Share:</label>
+                        <input type="number" id="portfolioCost" class="form-input" placeholder="150.00" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">現價 | Current Price:</label>
+                        <input type="number" id="portfolioPrice" class="form-input" placeholder="160.00" step="0.01">
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="app.portfolio.addHolding()">➕ 加入持倉</button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">📋 持倉清單</div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>代碼</th>
+                                <th>股數</th>
+                                <th>買入價</th>
+                                <th>總成本</th>
+                                <th>現價</th>
+                                <th>現值</th>
+                                <th>收益</th>
+                                <th>收益率</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="portfolioTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">📈 投資組合統計</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 5px; border-left: 4px solid #2196f3;">
+                        <div style="font-size: 12px; color: #666;">總投資成本</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #1565c0;" id="portfolioTotalCost">$0.00</div>
+                    </div>
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 5px; border-left: 4px solid #2196f3;">
+                        <div style="font-size: 12px; color: #666;">當前總值</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #1565c0;" id="portfolioTotalValue">$0.00</div>
+                    </div>
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 5px; border-left: 4px solid #4caf50;">
+                        <div style="font-size: 12px; color: #666;">總收益</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #4caf50;" id="portfolioTotalGain">+$0.00</div>
+                    </div>
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 5px; border-left: 4px solid #4caf50;">
+                        <div style="font-size: 12px; color: #666;">總收益率</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #4caf50;" id="portfolioTotalROI">+0.00%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Assessment Tab -->
+        <div id="risk" class="tab-content">
+            <div class="card">
+                <div class="card-header">⚠️ 風險評估</div>
+                <p style="margin-bottom: 15px; font-size: 13px; color: #666;">評估投資組合風險等級、波動率、回撤，獲取對沖建議。</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">🎚️ 風險等級評分</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label class="form-label">組合風險等級 (1-10):</label>
+                        <input type="range" id="riskScore" class="form-input" min="1" max="10" value="5" oninput="app.risk.updateRiskDisplay()">
+                        <div style="margin-top: 8px; font-size: 16px; font-weight: 600; color: #667eea;" id="riskScoreDisplay">5/10 - 中等風險</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="app.risk.calculateRisk()">📊 計算風險指數</button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">📉 波動率與回撤指標</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #f39c12;">
+                        <div style="font-size: 12px; color: #666;">年化波動率</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #d68910;" id="volatilityRate">15.2%</div>
+                    </div>
+                    <div style="background: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid #f44336;">
+                        <div style="font-size: 12px; color: #666;">最大回撤</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #c62828;" id="maxDrawdown">-18.5%</div>
+                    </div>
+                    <div style="background: #f3e5f5; padding: 15px; border-radius: 5px; border-left: 4px solid #9c27b0;">
+                        <div style="font-size: 12px; color: #666;">夏普比率</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #6a1b9a;" id="sharpeRatio">1.24</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">🛡️ 對沖建議</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px solid #4caf50;">
+                        <div style="font-weight: 600; color: #2e7d32; margin-bottom: 8px;">💰 黃金 (Gold)</div>
+                        <div style="font-size: 12px; color: #666;">建議配置: 5-10%</div>
+                        <div style="font-size: 11px; color: #999; margin-top: 5px;">通脹對沖，風險分散</div>
+                    </div>
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px solid #4caf50;">
+                        <div style="font-weight: 600; color: #2e7d32; margin-bottom: 8px;">📊 國債 (Bonds)</div>
+                        <div style="font-size: 12px; color: #666;">建議配置: 10-20%</div>
+                        <div style="font-size: 11px; color: #999; margin-top: 5px;">利率風險保護</div>
+                    </div>
+                    <div style="background: #ffebee; padding: 15px; border-radius: 8px; border: 1px solid #f44336;">
+                        <div style="font-weight: 600; color: #c62828; margin-bottom: 8px;">⚠️ 當前風險警告</div>
+                        <div style="font-size: 12px; color: #666;">科技股集中風險</div>
+                        <div style="font-size: 11px; color: #999; margin-top: 5px;">建議分散投資</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cash Flow Tab -->
+        <div id="cashflow" class="tab-content">
+            <div class="card">
+                <div class="card-header">💵 現金流計算</div>
+                <p style="margin-bottom: 15px; font-size: 13px; color: #666;">計算被動收入、生活方式等價、高收益資產推薦。</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">📊 被動收入計算器</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">年化收入 (HKD):</label>
+                        <input type="number" id="annualIncome" class="form-input" placeholder="500000" step="10000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">平均收益率 (%):</label>
+                        <input type="number" id="yieldRate" class="form-input" placeholder="10" min="0" max="100" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">稅率 (%):</label>
+                        <input type="number" id="taxRate2" class="form-input" placeholder="15" min="0" max="100" step="0.1">
+                    </div>
+                </div>
+                <button class="btn btn-info" onclick="app.cashflow.calculateIncome()">🧮 計算被動收入</button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">💰 被動收入結果</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 5px; border-left: 4px solid #2196f3;">
+                        <div style="font-size: 12px; color: #666;">年度被動收入</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #1565c0;" id="yearlyPassiveIncome">$0.00</div>
+                    </div>
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 5px; border-left: 4px solid #2196f3;">
+                        <div style="font-size: 12px; color: #666;">月度被動收入</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #1565c0;" id="monthlyPassiveIncome">$0.00</div>
+                    </div>
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 5px; border-left: 4px solid #4caf50;">
+                        <div style="font-size: 12px; color: #666;">稅後年收入</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #4caf50;" id="afterTaxIncome">$0.00</div>
+                    </div>
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 5px; border-left: 4px solid #4caf50;">
+                        <div style="font-size: 12px; color: #666;">稅後月收入</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #4caf50;" id="afterTaxMonthly">$0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">☕ 生活方式等價轉換</div>
+                <p style="margin-bottom: 15px; font-size: 12px; color: #666;">將你的月度被動收入轉換為日常生活等價數量。</p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;" id="lifestyleEquivalent">
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">📈 高收益資產推薦</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>代碼</th>
+                            <th>名稱</th>
+                            <th>年收益率</th>
+                            <th>分派頻率</th>
+                            <th>風險等級</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>QQQI</td>
+                            <td>iShares NASDAQ 100 Covered Call ETF</td>
+                            <td><span style="color: #48bb78; font-weight: 600;">12-14%</span></td>
+                            <td>月度 | Monthly</td>
+                            <td><span style="background: #fff3cd; padding: 4px 8px; border-radius: 3px; font-size: 11px;">中等 | Medium</span></td>
+                        </tr>
+                        <tr>
+                            <td>SPYI</td>
+                            <td>S&P 500 Covered Call ETF</td>
+                            <td><span style="color: #48bb78; font-weight: 600;">8-10%</span></td>
+                            <td>月度 | Monthly</td>
+                            <td><span style="background: #c6f6d5; padding: 4px 8px; border-radius: 3px; font-size: 11px; color: #22543d;">低 | Low</span></td>
+                        </tr>
+                        <tr>
+                            <td>JEPI</td>
+                            <td>JPMorgan Equity Premium Income</td>
+                            <td><span style="color: #48bb78; font-weight: 600;">8-10%</span></td>
+                            <td>月度 | Monthly</td>
+                            <td><span style="background: #c6f6d5; padding: 4px 8px; border-radius: 3px; font-size: 11px; color: #22543d;">低 | Low</span></td>
+                        </tr>
+                        <tr>
+                            <td>MO</td>
+                            <td>Altria Group Inc</td>
+                            <td><span style="color: #48bb78; font-weight: 600;">8-9%</span></td>
+                            <td>季度 | Quarterly</td>
+                            <td><span style="background: #fff3cd; padding: 4px 8px; border-radius: 3px; font-size: 11px;">中等 | Medium</span></td>
+                        </tr>
+                        <tr>
+                            <td>O</td>
+                            <td>Realty Income Corp</td>
+                            <td><span style="color: #48bb78; font-weight: 600;">3.5-4%</span></td>
+                            <td>月度 | Monthly</td>
+                            <td><span style="background: #c6f6d5; padding: 4px 8px; border-radius: 3px; font-size: 11px; color: #22543d;">低 | Low</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Derivatives Tab -->
+        <div id="derivatives" class="tab-content">
+            <div class="card">
+                <div class="card-header">📉 衍生品策略</div>
+                <p style="margin-bottom: 15px; font-size: 13px; color: #666;">計算賣出看跌期權、保護性買權成本、期權收益與保證金需求。</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">📊 賣出看跌期權計算器</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">執行價 (Strike Price):</label>
+                        <input type="number" id="strikePrice" class="form-input" placeholder="100.00" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">期權費 (Premium):</label>
+                        <input type="number" id="premium" class="form-input" placeholder="5.00" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">合約張數:</label>
+                        <input type="number" id="contracts" class="form-input" placeholder="10" step="1">
+                    </div>
+                </div>
+                <button class="btn btn-info" onclick="app.derivatives.calculatePutOption()">🧮 計算賣權收益</button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">💰 賣出看跌期權結果</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 5px; border-left: 4px solid #4caf50;">
+                        <div style="font-size: 12px; color: #666;">期權收益</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #4caf50;" id="putIncome">$0.00</div>
+                    </div>
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #f39c12;">
+                        <div style="font-size: 12px; color: #666;">保證金需求 (20%)</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #d68910;" id="marginRequired">$0.00</div>
+                    </div>
+                    <div style="background: #f3e5f5; padding: 15px; border-radius: 5px; border-left: 4px solid #9c27b0;">
+                        <div style="font-size: 12px; color: #666;">年化收益率 (月化)</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #6a1b9a;" id="annualizedReturn">0.00%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">🛡️ 保護性買權計算</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label class="form-label">股票現價:</label>
+                        <input type="number" id="stockPrice2" class="form-input" placeholder="100.00" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">買權執行價:</label>
+                        <input type="number" id="callStrike" class="form-input" placeholder="110.00" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">買權費用:</label>
+                        <input type="number" id="callPremium" class="form-input" placeholder="3.00" step="0.01">
+                    </div>
+                </div>
+                <button class="btn btn-info" onclick="app.derivatives.calculateProtectiveCall()">🧮 計算保護成本</button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">📈 保護性買權結果</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 5px; border-left: 4px solid #2196f3;">
+                        <div style="font-size: 12px; color: #666;">買權成本</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #1565c0;" id="callCost">$0.00</div>
+                    </div>
+                    <div style="background: #e8f5e9; padding: 15px; border-radius: 5px; border-left: 4px solid #4caf50;">
+                        <div style="font-size: 12px; color: #666;">最大利潤</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #4caf50;" id="maxProfit">$0.00</div>
+                    </div>
+                    <div style="background: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid #f44336;">
+                        <div style="font-size: 12px; color: #666;">最大損失</div>
+                        <div style="font-size: 18px; font-weight: 600; color: #c62828;" id="maxLoss">$0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">⚠️ 衍生品風險警告</div>
+                <div style="background: #ffebee; border-left: 4px solid #f44336; padding: 15px; border-radius: 5px;">
+                    <strong style="color: #c62828;">⚠️ 重要風險提示：</strong>
+                    <ul style="margin-top: 10px; margin-left: 20px; font-size: 13px; color: #666;">
+                        <li>期權交易涉及高風險，可能導致重大損失</li>
+                        <li>保證金要求可能導致追加保證金要求</li>
+                        <li>市場波動可能導致快速虧損</li>
+                        <li>建議咨詢專業顧問後進行交易</li>
+                        <li>過去表現不代表未來結果</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Config Tab -->
         <div id="api-config" class="tab-content">
             <div class="card">
                 <div class="card-header">🔑 API 提供商配置</div>
@@ -347,11 +859,11 @@
                     <div style="margin-bottom: 10px;">
                         <span class="status-light" id="avStatus"></span>
                         <strong>Alpha Vantage</strong>
-                        <span id="avStatusText" style="font-size: 12px; color: #999; margin-left: 10px;">未配置 | Unconfigured</span>
+                        <span id="avStatusText" style="font-size: 12px; color: #999; margin-left: 10px;">未配置</span>
                     </div>
                     <div class="form-group">
                         <label class="form-label">API Key:</label>
-                        <input type="password" id="avApiKey" class="form-input" placeholder="輸入你的 Alpha Vantage API Key">
+                        <input type="password" id="avApiKey" class="form-input" placeholder="輸入 API Key">
                     </div>
                     <button class="btn btn-primary" onclick="app.saveAPIConfig('AlphaVantage')">💾 保存</button>
                 </div>
@@ -360,11 +872,11 @@
                     <div style="margin-bottom: 10px;">
                         <span class="status-light" id="fmpStatus"></span>
                         <strong>Financial Modeling Prep</strong>
-                        <span id="fmpStatusText" style="font-size: 12px; color: #999; margin-left: 10px;">未配置 | Unconfigured</span>
+                        <span id="fmpStatusText" style="font-size: 12px; color: #999; margin-left: 10px;">未配置</span>
                     </div>
                     <div class="form-group">
                         <label class="form-label">API Key:</label>
-                        <input type="password" id="fmpApiKey" class="form-input" placeholder="輸入你的 FMP API Key">
+                        <input type="password" id="fmpApiKey" class="form-input" placeholder="輸入 API Key">
                     </div>
                     <button class="btn btn-primary" onclick="app.saveAPIConfig('FinancialModelingPrep')">💾 保存</button>
                 </div>
@@ -373,24 +885,24 @@
                     <div style="margin-bottom: 10px;">
                         <span class="status-light" id="polygonStatus"></span>
                         <strong>Polygon.io</strong>
-                        <span id="polygonStatusText" style="font-size: 12px; color: #999; margin-left: 10px;">未配置 | Unconfigured</span>
+                        <span id="polygonStatusText" style="font-size: 12px; color: #999; margin-left: 10px;">未配置</span>
                     </div>
                     <div class="form-group">
                         <label class="form-label">API Key:</label>
-                        <input type="password" id="polygonApiKey" class="form-input" placeholder="輸入你的 Polygon API Key">
+                        <input type="password" id="polygonApiKey" class="form-input" placeholder="輸入 API Key">
                     </div>
                     <button class="btn btn-primary" onclick="app.saveAPIConfig('Polygon')">💾 保存</button>
                 </div>
             </div>
         </div>
-        
-        <!-- 系統設置 Tab -->
+
+        <!-- Settings Tab -->
         <div id="settings" class="tab-content">
             <div class="card">
                 <div class="card-header">⚙️ 系統設置</div>
                 
                 <div class="form-group">
-                    <label class="form-label">刷新頻率 | Refresh Frequency:</label>
+                    <label class="form-label">刷新頻率:</label>
                     <select id="refreshMode" class="form-input">
                         <option value="5min">5 分鐘</option>
                         <option value="15min">15 分鐘</option>
@@ -401,115 +913,37 @@
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">稅率 (%) | Tax Rate:</label>
-                    <input type="number" id="taxRate" class="form-input" placeholder="輸入稅率，例如 15" min="0" max="100" step="0.1">
+                    <label class="form-label">稅率 (%):</label>
+                    <input type="number" id="systemTaxRate" class="form-input" placeholder="15" min="0" max="100" step="0.1">
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">無風險利率 (%) | Risk-Free Rate:</label>
-                    <input type="number" id="riskFreeRate" class="form-input" placeholder="輸入無風險利率，例如 2.5" min="0" max="20" step="0.1">
+                    <label class="form-label">無風險利率 (%):</label>
+                    <input type="number" id="riskFreeRate" class="form-input" placeholder="2.5" min="0" max="20" step="0.1">
                 </div>
                 
                 <button class="btn btn-primary" onclick="app.saveSystemSettings()">💾 保存設置</button>
             </div>
-        </div>
-        
-        <!-- 計算公式 Tab -->
-        <div id="formulas" class="tab-content">
+
             <div class="card">
-                <div class="card-header">📐 自定義計算公式</div>
-                <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
-                    在這裡修改用於計算各項指標的公式。所有更改都會自動保存並同步到其他設備。
-                </p>
-                
-                <table style="width: 100%; border-collapse: collapse;">
-                    <tr style="background: #f5f5f5; border-bottom: 1px solid #ddd;">
-                        <th style="padding: 10px; text-align: left;">公式名稱 | Formula Name</th>
-                        <th style="padding: 10px; text-align: left;">當前公式 | Current Formula</th>
-                        <th style="padding: 10px; text-align: center;">操作 | Action</th>
-                    </tr>
-                    <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 10px;">股息收益率</td>
-                        <td style="padding: 10px;"><code id="formula-dividend_yield-text">Annual Dividend / Stock Price</code></td>
-                        <td style="padding: 10px; text-align: center;">
-                            <button class="btn btn-primary" onclick="app.editFormula('dividend_yield')" style="margin: 0; padding: 5px 10px; font-size: 12px;">✏️ 編輯</button>
-                        </td>
-                    </tr>
-                    <tr style="border-bottom: 1px solid #ddd;">
-                        <td style="padding: 10px;">夏普比率</td>
-                        <td style="padding: 10px;"><code id="formula-sharpe_ratio-text">(Return - Risk Free Rate) / Volatility</code></td>
-                        <td style="padding: 10px; text-align: center;">
-                            <button class="btn btn-primary" onclick="app.editFormula('sharpe_ratio')" style="margin: 0; padding: 5px 10px; font-size: 12px;">✏️ 編輯</button>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-        
-        <!-- 雲端同步 Tab -->
-        <div id="cloud-sync" class="tab-content">
-            <div class="card">
-                <div class="card-header">☁️ 雲端數據同步</div>
-                
-                <div style="background: #e6fffa; border-left: 4px solid #38b2ac; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
-                    <strong>✨ 同步狀態</strong>
-                    <div style="margin-top: 10px; font-size: 14px;">
-                        <p>📊 <strong>用戶ID:</strong> <code id="userIdDisplay" style="background: #f0f0f0; padding: 5px 10px; border-radius: 3px;">Loading...</code></p>
-                        <p>🔄 <strong>同步狀態:</strong> <span id="cloudSyncStatus" style="color: #38b2ac; font-weight: 600;">連接中...</span></p>
-                        <p>📅 <strong>最後同步:</strong> <span id="lastSyncTime">未同步</span></p>
-                    </div>
+                <div class="card-header">☁️ 雲端同步</div>
+                <div style="background: #e6fffa; border-left: 4px solid #38b2ac; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
+                    <p style="margin: 0; font-size: 12px;"><strong>用戶ID:</strong> <code id="userIdDisplay" style="background: #f0f0f0; padding: 3px 6px; border-radius: 3px;">Loading...</code></p>
+                    <p style="margin: 5px 0 0; font-size: 12px;"><strong>同步狀態:</strong> <span id="cloudSyncStatus" style="color: #38b2ac; font-weight: 600;">連接中...</span></p>
                 </div>
-                
                 <button class="btn btn-success" onclick="app.manualSync()">🔄 手動同步</button>
-                <button class="btn btn-danger" onclick="app.clearAllCloudData()">🗑️ 清除雲端數據</button>
-                
-                <div style="margin-top: 20px; padding: 15px; background: #fef5e7; border-left: 4px solid #f39c12; border-radius: 5px;">
-                    <strong>💡 提示：</strong>
-                    <ul style="margin-top: 10px; margin-left: 20px;">
-                        <li>✅ 所有數據自動同步到雲端</li>
-                        <li>✅ 在任何設備上登入都能恢復數據</li>
-                        <li>✅ 支持實時多設備協作</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 公式編輯 Modal -->
-    <div id="formulaEditorModal" class="modal">
-        <div class="modal-content">
-            <h3 style="margin-bottom:20px;">編輯公式</h3>
-            <div class="form-group">
-                <label class="form-label">公式ID:</label>
-                <div id="formulaId" style="padding:10px; background:#f5f5f5; border-radius:5px; font-weight:600;">-</div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">描述:</label>
-                <div id="formulaDescription" style="padding:10px; background:#f5f5f5; border-radius:5px;">-</div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">公式:</label>
-                <input type="text" id="formulaInput" class="form-input" placeholder="輸入新的公式" onkeyup="app.validateFormulaRealtime(this.value)">
-            </div>
-            <div id="formulaValidation" style="display:none; padding:10px; margin-top:10px; border-radius:5px; font-size:14px;"></div>
-            <div style="margin-top:20px; display:flex; gap:10px;">
-                <button class="btn btn-success" onclick="app.saveFormulaEdit()" style="flex:1;">💾 保存公式</button>
-                <button class="btn btn-secondary" onclick="app.closeFormulaEditor()" style="flex:1;">❌ 取消</button>
             </div>
         </div>
     </div>
 
     <script>
-        // 統一的應用對象，避免全局變數污染
         const app = {
             supabaseClient: null,
             userId: null,
             
-            // 初始化應用
             async init() {
-                // 初始化 Supabase（替換為你的值）
-                const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co'
-                const SUPABASE_KEY = 'eyJhbGc...'
+                const SUPABASE_URL = 'https://tfmoaywkdgqfklibnqln.supabase.co'
+                const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmbW9heXdrZGdxZmtsaWJucWxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjA0MzEsImV4cCI6MjA4MzQzNjQzMX0.vtaIE2blCfOOzFnj8HiTeX5Ensaxd-_U708JjAynFc0'
                 
                 try {
                     if (window.supabase) {
@@ -519,7 +953,6 @@
                     console.error('Supabase 初始化失敗:', error)
                 }
                 
-                // 獲取或創建用戶ID
                 this.userId = localStorage.getItem('userId')
                 if (!this.userId) {
                     this.userId = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now()
@@ -528,23 +961,13 @@
                 
                 document.getElementById('userIdDisplay').textContent = this.userId
                 
-                // 綁定 ESC 鍵關閉 Modal
-                document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape') {
-                        this.closeFormulaEditor()
-                    }
-                })
-                
-                // 初始化數據
                 this.loadLocalSettings()
                 await this.loadFromCloud()
                 this.updateSyncStatus()
                 
-                // 定期同步
                 setInterval(() => this.loadFromCloud(), 30000)
             },
             
-            // Toast 通知
             showToast(message, type = 'info') {
                 const toast = document.createElement('div')
                 toast.className = `toast ${type}`
@@ -557,22 +980,14 @@
                 }, 4000)
             },
             
-            // Tab 切換
             switchTab(event, tabName) {
-                const contents = document.querySelectorAll('.tab-content')
-                contents.forEach(content => content.classList.remove('active'))
-                
-                const buttons = document.querySelectorAll('.tab-btn')
-                buttons.forEach(btn => btn.classList.remove('active'))
-                
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'))
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
                 document.getElementById(tabName).classList.add('active')
                 event.target.classList.add('active')
             },
             
-            // 保存 API 配置
             async saveAPIConfig(provider) {
-                let apiKeyElement, statusElement, statusTextElement
-                
                 const configMap = {
                     'AlphaVantage': { key: 'avApiKey', status: 'avStatus', text: 'avStatusText' },
                     'FinancialModelingPrep': { key: 'fmpApiKey', status: 'fmpStatus', text: 'fmpStatusText' },
@@ -582,19 +997,9 @@
                 const config = configMap[provider]
                 if (!config) return
                 
-                apiKeyElement = document.getElementById(config.key)
-                statusElement = document.getElementById(config.status)
-                statusTextElement = document.getElementById(config.text)
-                
-                const apiKey = apiKeyElement.value.trim()
-                
+                const apiKey = document.getElementById(config.key).value.trim()
                 if (!apiKey) {
-                    this.showToast('❌ API Key 不能為空 | API Key cannot be empty', 'error')
-                    return
-                }
-                
-                if (apiKey.length < 10) {
-                    this.showToast('❌ API Key 過短 | API Key too short', 'error')
+                    this.showToast('❌ API Key 不能為空', 'error')
                     return
                 }
                 
@@ -602,184 +1007,64 @@
                     let configData = JSON.parse(localStorage.getItem('APIConfig') || '{}')
                     if (!configData.providers) configData.providers = {}
                     
-                    configData.providers[provider] = {
-                        apiKey: apiKey,
-                        enabled: true,
-                        savedTime: new Date().toISOString()
-                    }
-                    
+                    configData.providers[provider] = { apiKey, enabled: true, savedTime: new Date().toISOString() }
                     localStorage.setItem('APIConfig', JSON.stringify(configData))
                     await this.saveToCloud('APIConfig', configData)
                     
-                    statusElement.className = 'status-light connected'
-                    statusTextElement.textContent = '✓ 已連接 | Connected'
-                    
-                    this.showToast(`✓ ${provider} API 已保存到雲端`, 'success')
+                    document.getElementById(config.status).className = 'status-light connected'
+                    document.getElementById(config.text).textContent = '✓ 已連接'
+                    this.showToast(`✓ ${provider} 已保存`, 'success')
                 } catch (error) {
-                    this.showToast('❌ 保存失敗: ' + error.message, 'error')
+                    this.showToast('❌ 保存失敗', 'error')
                 }
             },
             
-            // 保存系統設置
             async saveSystemSettings() {
                 try {
                     const refreshMode = document.getElementById('refreshMode').value
-                    const taxRate = parseFloat(document.getElementById('taxRate').value)
+                    const taxRate = parseFloat(document.getElementById('systemTaxRate').value)
                     const riskFreeRate = parseFloat(document.getElementById('riskFreeRate').value)
                     
-                    if (isNaN(taxRate) || taxRate < 0 || taxRate > 100) {
-                        this.showToast('❌ 稅率無效 (0-100)', 'error')
-                        return
-                    }
-                    
-                    if (isNaN(riskFreeRate) || riskFreeRate < 0 || riskFreeRate > 20) {
-                        this.showToast('❌ 無風險利率無效 (0-20)', 'error')
-                        return
-                    }
-                    
                     const settings = { refreshMode, taxRate, riskFreeRate, savedTime: new Date().toISOString() }
-                    
                     localStorage.setItem('SystemSettings', JSON.stringify(settings))
                     await this.saveToCloud('SystemSettings', settings)
                     
-                    this.showToast('✓ 系統設置已保存', 'success')
+                    this.showToast('✓ 設置已保存', 'success')
                 } catch (error) {
-                    this.showToast('❌ 設置保存失敗: ' + error.message, 'error')
+                    this.showToast('❌ 保存失敗', 'error')
                 }
             },
             
-            // 公式數據
-            formulas: {
-                dividend_yield: {
-                    description: '股息收益率 | Dividend Yield = Annual Dividend / Stock Price',
-                    formula: 'Annual Dividend / Stock Price'
-                },
-                sharpe_ratio: {
-                    description: '夏普比率 | Sharpe Ratio = (Return - Risk Free Rate) / Volatility',
-                    formula: '(Return - Risk Free Rate) / Volatility'
-                }
+            loadLocalSettings() {
+                const settings = JSON.parse(localStorage.getItem('SystemSettings') || '{}')
+                if (settings.refreshMode) document.getElementById('refreshMode').value = settings.refreshMode
+                if (settings.taxRate) document.getElementById('systemTaxRate').value = settings.taxRate
+                if (settings.riskFreeRate) document.getElementById('riskFreeRate').value = settings.riskFreeRate
             },
             
-            // 編輯公式
-            editFormula(formulaId) {
-                const modal = document.getElementById('formulaEditorModal')
-                const formulaInput = document.getElementById('formulaInput')
-                
-                document.getElementById('formulaId').textContent = formulaId
-                document.getElementById('formulaDescription').textContent = this.formulas[formulaId].description
-                formulaInput.value = this.formulas[formulaId].formula
-                
-                modal.classList.add('active')
-                this.validateFormulaRealtime(formulaInput.value)
-            },
-            
-            // 驗證公式
-            validateFormulaRealtime(formula) {
-                const validationDiv = document.getElementById('formulaValidation')
-                
-                if (!formula.trim()) {
-                    validationDiv.style.display = 'none'
-                    return
-                }
-                
-                const isValid = this.validateFormula(formula)
-                
-                validationDiv.style.display = 'block'
-                if (isValid) {
-                    validationDiv.style.background = '#c6f6d5'
-                    validationDiv.style.color = '#22543d'
-                    validationDiv.textContent = '✓ 公式有效'
-                } else {
-                    validationDiv.style.background = '#fed7d7'
-                    validationDiv.style.color = '#742a2a'
-                    validationDiv.textContent = '✗ 公式無效'
-                }
-            },
-            
-            validateFormula(formula) {
-                if (!formula || formula.trim().length === 0) return false
-                const openParen = (formula.match(/\(/g) || []).length
-                const closeParen = (formula.match(/\)/g) || []).length
-                if (openParen !== closeParen) return false
-                const dangerousPatterns = /[<>!&|]/
-                if (dangerousPatterns.test(formula)) return false
-                return true
-            },
-            
-            // 保存公式編輯
-            async saveFormulaEdit() {
-                const formulaId = document.getElementById('formulaId').textContent
-                const newFormula = document.getElementById('formulaInput').value.trim()
-                
-                if (!this.validateFormula(newFormula)) {
-                    this.showToast('❌ 公式語法無效', 'error')
-                    return
-                }
-                
-                try {
-                    this.formulas[formulaId].formula = newFormula
-                    
-                    let formulas = JSON.parse(localStorage.getItem('CalculationFormulas') || '{}')
-                    formulas[formulaId] = { formula: newFormula, savedTime: new Date().toISOString() }
-                    localStorage.setItem('CalculationFormulas', JSON.stringify(formulas))
-                    
-                    await this.saveToCloud('CalculationFormulas', formulas)
-                    
-                    const formulaCell = document.getElementById(`formula-${formulaId}-text`)
-                    if (formulaCell) formulaCell.textContent = newFormula
-                    
-                    this.showToast('✓ 公式已保存', 'success')
-                    this.closeFormulaEditor()
-                } catch (error) {
-                    this.showToast('❌ 保存公式失敗: ' + error.message, 'error')
-                }
-            },
-            
-            // 關閉公式編輯器
-            closeFormulaEditor() {
-                const modal = document.getElementById('formulaEditorModal')
-                modal.classList.remove('active')
-                document.getElementById('formulaInput').value = ''
-                document.getElementById('formulaValidation').style.display = 'none'
-            },
-            
-            // 雲端保存
             async saveToCloud(dataType, data) {
                 if (!this.supabaseClient) return
-                
                 try {
-                    const { error } = await this.supabaseClient
-                        .from('user_data')
-                        .upsert({
-                            user_id: this.userId,
-                            [dataType.toLowerCase()]: data,
-                            updated_at: new Date().toISOString()
-                        })
-                    
+                    const { error } = await this.supabaseClient.from('user_data').upsert({
+                        user_id: this.userId,
+                        [dataType.toLowerCase()]: data,
+                        updated_at: new Date().toISOString()
+                    })
                     if (error) throw error
                     this.updateSyncStatus()
                 } catch (error) {
-                    console.error(`雲端保存失敗 (${dataType}):`, error)
+                    console.error('雲端保存失敗:', error)
                 }
             },
             
-            // 雲端載入
             async loadFromCloud() {
                 if (!this.supabaseClient) return
-                
                 try {
-                    const { data, error } = await this.supabaseClient
-                        .from('user_data')
-                        .select('*')
-                        .eq('user_id', this.userId)
-                        .single()
-                    
+                    const { data, error } = await this.supabaseClient.from('user_data').select('*').eq('user_id', this.userId).single()
                     if (error && error.code !== 'PGRST116') throw error
-                    
                     if (data) {
                         if (data.apiconfig) localStorage.setItem('APIConfig', JSON.stringify(data.apiconfig))
                         if (data.systemsettings) localStorage.setItem('SystemSettings', JSON.stringify(data.systemsettings))
-                        if (data.calculationformulas) localStorage.setItem('CalculationFormulas', JSON.stringify(data.calculationformulas))
                         this.loadLocalSettings()
                     }
                 } catch (error) {
@@ -787,51 +1072,334 @@
                 }
             },
             
-            // 本地設置
-            loadLocalSettings() {
-                const settings = JSON.parse(localStorage.getItem('SystemSettings') || '{}')
-                if (settings.refreshMode) document.getElementById('refreshMode').value = settings.refreshMode
-                if (settings.taxRate) document.getElementById('taxRate').value = settings.taxRate
-                if (settings.riskFreeRate) document.getElementById('riskFreeRate').value = settings.riskFreeRate
-            },
-            
-            // 手動同步
             async manualSync() {
-                this.showToast('🔄 正在同步數據...', 'info')
+                this.showToast('🔄 正在同步...', 'info')
                 await this.loadFromCloud()
                 this.updateSyncStatus()
             },
             
-            // 清除雲端數據
-            async clearAllCloudData() {
-                if (!confirm('確定要清除所有雲端數據嗎？')) return
-                if (!this.supabaseClient) return
+            updateSyncStatus() {
+                document.getElementById('cloudSyncStatus').textContent = this.supabaseClient ? '✓ 已連接' : '❌ 未連接'
+            },
+
+            // ETF 模組
+            etf: {
+                allETFs: [
+                    { code: 'QQQ', name: 'Invesco QQQ Trust', type: '科技', cagr5: '18-22%', cagr10: '17.5-19%', desc: 'NASDAQ-100' },
+                    { code: 'VGT', name: 'Vanguard Information Technology', type: '科技', cagr5: '16-20%', cagr10: '16-18%', desc: 'IT Sector' },
+                    { code: 'SMH', name: 'VanEck Semiconductor ETF', type: '半導體', cagr5: '15-25%', cagr10: '12-18%', desc: 'Semiconductors' },
+                    { code: 'VOO', name: 'Vanguard S&P 500 ETF', type: '寬基', cagr5: '12-16%', cagr10: '11-15%', desc: 'S&P 500' },
+                    { code: 'XLK', name: 'Technology Select Sector SPDR', type: '科技', cagr5: '15-19%', cagr10: '15-17%', desc: 'Tech Sector' },
+                    { code: 'ARKK', name: 'ARK Innovation ETF', type: '創新', cagr5: '8-15%', cagr10: '10-14%', desc: 'Innovation' }
+                ],
+                watchlist: JSON.parse(localStorage.getItem('ETFWatchlist') || '[]'),
                 
-                try {
-                    await this.supabaseClient.from('user_data').delete().eq('user_id', this.userId)
-                    this.showToast('✓ 雲端數據已清除', 'success')
-                } catch (error) {
-                    this.showToast('❌ 清除失敗: ' + error.message, 'error')
+                init() {
+                    this.renderTable(this.allETFs)
+                    this.renderWatchlist()
+                },
+                
+                renderTable(etfs) {
+                    const tbody = document.getElementById('etfTableBody')
+                    tbody.innerHTML = etfs.map(etf => `
+                        <tr>
+                            <td><strong>${etf.code}</strong></td>
+                            <td>${etf.name}</td>
+                            <td>${etf.type}</td>
+                            <td style="color: #2196f3; text-align: center;">${etf.cagr5}</td>
+                            <td style="color: #f39c12; text-align: center;">${etf.cagr10}</td>
+                            <td>${etf.desc}</td>
+                            <td style="text-align: center;">
+                                <button class="btn btn-success" onclick="app.etf.addToWatchlist('${etf.code}')" style="margin: 0; padding: 6px 10px; font-size: 12px;">➕</button>
+                            </td>
+                        </tr>
+                    `).join('')
+                },
+                
+                searchETF() {
+                    const input = document.getElementById('etfSearchInput').value.toUpperCase()
+                    const filtered = input ? this.allETFs.filter(e => e.code.includes(input) || e.name.toUpperCase().includes(input)) : this.allETFs
+                    this.renderTable(filtered)
+                },
+                
+                quickSearch(code) {
+                    document.getElementById('etfSearchInput').value = code
+                    this.searchETF()
+                },
+                
+                addToWatchlist(code) {
+                    if (this.watchlist.find(w => w.code === code)) {
+                        app.showToast(`${code} 已在清單中`, 'warning')
+                        return
+                    }
+                    const etf = this.allETFs.find(e => e.code === code)
+                    if (etf) {
+                        this.watchlist.push({ ...etf, addedTime: new Date().toISOString() })
+                        this.saveWatchlist()
+                        this.renderWatchlist()
+                        app.showToast(`✓ ${code} 已加入監控清單`, 'success')
+                    }
+                },
+                
+                removeFromWatchlist(code) {
+                    this.watchlist = this.watchlist.filter(w => w.code !== code)
+                    this.saveWatchlist()
+                    this.renderWatchlist()
+                    app.showToast(`✓ ${code} 已移除`, 'info')
+                },
+                
+                renderWatchlist() {
+                    const container = document.getElementById('watchlistContainer')
+                    const empty = document.getElementById('emptyWatchlist')
+                    
+                    if (this.watchlist.length === 0) {
+                        container.style.display = 'none'
+                        empty.style.display = 'block'
+                        return
+                    }
+                    
+                    container.style.display = 'grid'
+                    empty.style.display = 'none'
+                    container.innerHTML = this.watchlist.map(etf => `
+                        <div style="background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 15px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <div style="font-size: 16px; font-weight: 600; color: #667eea;">${etf.code}</div>
+                                <button class="btn btn-danger" onclick="app.etf.removeFromWatchlist('${etf.code}')" style="margin: 0; padding: 4px 6px; font-size: 11px;">✕</button>
+                            </div>
+                            <div style="font-size: 12px; color: #666; margin-bottom: 10px;">${etf.name}</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
+                                <div style="background: white; padding: 8px; border-radius: 4px;">5Y: <strong style="color: #2196f3;">${etf.cagr5}</strong></div>
+                                <div style="background: white; padding: 8px; border-radius: 4px;">10Y: <strong style="color: #f39c12;">${etf.cagr10}</strong></div>
+                            </div>
+                        </div>
+                    `).join('')
+                },
+                
+                saveWatchlist() {
+                    localStorage.setItem('ETFWatchlist', JSON.stringify(this.watchlist))
+                    app.saveToCloud('ETFWatchlist', this.watchlist)
                 }
             },
-            
-            // 更新同步狀態
-            updateSyncStatus() {
-                if (!this.supabaseClient) {
-                    document.getElementById('cloudSyncStatus').textContent = '❌ 未連接'
-                    document.getElementById('syncStatusIcon').textContent = '❌'
-                    return
-                }
+
+            // Portfolio 模組
+            portfolio: {
+                holdings: JSON.parse(localStorage.getItem('PortfolioHoldings') || '[]'),
                 
-                document.getElementById('cloudSyncStatus').textContent = '✓ 已同步'
-                document.getElementById('syncStatusIcon').textContent = '✓'
-                document.getElementById('lastSyncTime').textContent = new Date().toLocaleString('zh-HK')
-                document.getElementById('syncStatus').textContent = '✓ 雲端連接正常'
+                addHolding() {
+                    const ticker = document.getElementById('portfolioTicker').value.trim().toUpperCase()
+                    const shares = parseFloat(document.getElementById('portfolioShares').value)
+                    const cost = parseFloat(document.getElementById('portfolioCost').value)
+                    const price = parseFloat(document.getElementById('portfolioPrice').value)
+                    
+                    if (!ticker || isNaN(shares) || isNaN(cost) || isNaN(price)) {
+                        app.showToast('❌ 請填寫所有欄位', 'error')
+                        return
+                    }
+                    
+                    this.holdings.push({
+                        ticker, shares, cost, price,
+                        addedTime: new Date().toISOString()
+                    })
+                    
+                    this.savePortfolio()
+                    this.renderTable()
+                    this.updateStats()
+                    
+                    document.getElementById('portfolioTicker').value = ''
+                    document.getElementById('portfolioShares').value = ''
+                    document.getElementById('portfolioCost').value = ''
+                    document.getElementById('portfolioPrice').value = ''
+                    
+                    app.showToast('✓ 持倉已新增', 'success')
+                },
+                
+                removeHolding(ticker) {
+                    this.holdings = this.holdings.filter(h => h.ticker !== ticker)
+                    this.savePortfolio()
+                    this.renderTable()
+                    this.updateStats()
+                    app.showToast(`✓ ${ticker} 已移除`, 'info')
+                },
+                
+                renderTable() {
+                    const tbody = document.getElementById('portfolioTableBody')
+                    tbody.innerHTML = this.holdings.map(h => {
+                        const totalCost = h.shares * h.cost
+                        const currentValue = h.shares * h.price
+                        const gain = currentValue - totalCost
+                        const returnPct = (gain / totalCost * 100).toFixed(2)
+                        
+                        return `
+                            <tr>
+                                <td><strong>${h.ticker}</strong></td>
+                                <td>${h.shares.toFixed(2)}</td>
+                                <td>$${h.cost.toFixed(2)}</td>
+                                <td>$${totalCost.toFixed(2)}</td>
+                                <td>$${h.price.toFixed(2)}</td>
+                                <td>$${currentValue.toFixed(2)}</td>
+                                <td style="color: ${gain >= 0 ? '#48bb78' : '#f56565'};"><strong>${gain >= 0 ? '+' : ''}$${gain.toFixed(2)}</strong></td>
+                                <td style="color: ${returnPct >= 0 ? '#48bb78' : '#f56565'};"><strong>${returnPct >= 0 ? '+' : ''}${returnPct}%</strong></td>
+                                <td><button class="btn btn-danger" onclick="app.portfolio.removeHolding('${h.ticker}')" style="margin: 0; padding: 4px 8px; font-size: 11px;">🗑️</button></td>
+                            </tr>
+                        `
+                    }).join('')
+                },
+                
+                updateStats() {
+                    let totalCost = 0, totalValue = 0
+                    this.holdings.forEach(h => {
+                        totalCost += h.shares * h.cost
+                        totalValue += h.shares * h.price
+                    })
+                    
+                    const gain = totalValue - totalCost
+                    const roi = totalCost > 0 ? (gain / totalCost * 100).toFixed(2) : 0
+                    
+                    document.getElementById('portfolioTotalCost').textContent = `$${totalCost.toFixed(2)}`
+                    document.getElementById('portfolioTotalValue').textContent = `$${totalValue.toFixed(2)}`
+                    document.getElementById('portfolioTotalGain').textContent = `${gain >= 0 ? '+' : ''}$${gain.toFixed(2)}`
+                    document.getElementById('portfolioTotalROI').textContent = `${roi >= 0 ? '+' : ''}${roi}%`
+                    document.getElementById('holdingCount').textContent = this.holdings.length
+                    document.getElementById('totalAssets').textContent = `$${totalValue.toFixed(2)}`
+                    document.getElementById('totalGain').textContent = `${roi >= 0 ? '+' : ''}${roi}%`
+                },
+                
+                savePortfolio() {
+                    localStorage.setItem('PortfolioHoldings', JSON.stringify(this.holdings))
+                    app.saveToCloud('PortfolioHoldings', this.holdings)
+                },
+                
+                init() {
+                    this.renderTable()
+                    this.updateStats()
+                }
+            },
+
+            // Risk Assessment 模組
+            risk: {
+                updateRiskDisplay() {
+                    const score = document.getElementById('riskScore').value
+                    let level = '低風險'
+                    if (score > 6) level = '中高風險'
+                    if (score > 8) level = '高風險'
+                    document.getElementById('riskScoreDisplay').textContent = `${score}/10 - ${level}`
+                },
+                
+                calculateRisk() {
+                    this.updateRiskDisplay()
+                    app.showToast('✓ 風險評分已更新', 'success')
+                }
+            },
+
+            // Cash Flow 模組
+            cashflow: {
+                calculateIncome() {
+                    const annual = parseFloat(document.getElementById('annualIncome').value)
+                    const yield_rate = parseFloat(document.getElementById('yieldRate').value)
+                    const tax = parseFloat(document.getElementById('taxRate2').value)
+                    
+                    if (isNaN(annual) || isNaN(yield_rate) || isNaN(tax)) {
+                        app.showToast('❌ 請填寫所有欄位', 'error')
+                        return
+                    }
+                    
+                    const yearlyIncome = annual * (yield_rate / 100)
+                    const monthlyIncome = yearlyIncome / 12
+                    const afterTaxYearly = yearlyIncome * (1 - tax / 100)
+                    const afterTaxMonthly = afterTaxYearly / 12
+                    
+                    document.getElementById('yearlyPassiveIncome').textContent = `$${yearlyIncome.toFixed(2)}`
+                    document.getElementById('monthlyPassiveIncome').textContent = `$${monthlyIncome.toFixed(2)}`
+                    document.getElementById('afterTaxIncome').textContent = `$${afterTaxYearly.toFixed(2)}`
+                    document.getElementById('afterTaxMonthly').textContent = `$${afterTaxMonthly.toFixed(2)}`
+                    document.getElementById('monthlyIncome').textContent = `$${afterTaxMonthly.toFixed(2)}`
+                    
+                    this.renderLifestyleEquivalent(monthlyIncome)
+                    app.showToast('✓ 被動收入已計算', 'success')
+                },
+                
+                renderLifestyleEquivalent(monthlyIncome) {
+                    const lifestyles = [
+                        { icon: '☕', name: '咖啡杯', price: 8 },
+                        { icon: '🎬', name: '電影票', price: 15 },
+                        { icon: '📺', name: 'Netflix 月費', price: 15 },
+                        { icon: '🍕', name: '披薩', price: 12 },
+                        { icon: '🚌', name: '巴士車票', price: 3 },
+                        { icon: '🏖️', name: '度假天數 (日均 $200)', price: 200 }
+                    ]
+                    
+                    const container = document.getElementById('lifestyleEquivalent')
+                    container.innerHTML = lifestyles.map(ls => {
+                        const count = Math.floor(monthlyIncome / ls.price)
+                        return `
+                            <div style="background: #f9f9f9; padding: 12px; border-radius: 8px; border-left: 3px solid #667eea;">
+                                <div style="font-size: 16px;">${ls.icon}</div>
+                                <div style="font-size: 12px; color: #666;">${ls.name}</div>
+                                <div style="font-size: 18px; font-weight: 600; color: #667eea; margin-top: 5px;">${count}</div>
+                            </div>
+                        `
+                    }).join('')
+                }
+            },
+
+            // Derivatives 模組
+            derivatives: {
+                calculatePutOption() {
+                    const strike = parseFloat(document.getElementById('strikePrice').value)
+                    const premium = parseFloat(document.getElementById('premium').value)
+                    const contracts = parseInt(document.getElementById('contracts').value)
+                    
+                    if (isNaN(strike) || isNaN(premium) || isNaN(contracts)) {
+                        app.showToast('❌ 請填寫所有欄位', 'error')
+                        return
+                    }
+                    
+                    const income = premium * 100 * contracts
+                    const margin = strike * 100 * contracts * 0.2
+                    const annReturn = (premium / strike * 100 * 12).toFixed(2)
+                    
+                    document.getElementById('putIncome').textContent = `$${income.toFixed(2)}`
+                    document.getElementById('marginRequired').textContent = `$${margin.toFixed(2)}`
+                    document.getElementById('annualizedReturn').textContent = `${annReturn}%`
+                    
+                    app.showToast('✓ 賣權已計算', 'success')
+                },
+                
+                calculateProtectiveCall() {
+                    const stock = parseFloat(document.getElementById('stockPrice2').value)
+                    const callStrike = parseFloat(document.getElementById('callStrike').value)
+                    const callPremium = parseFloat(document.getElementById('callPremium').value)
+                    
+                    if (isNaN(stock) || isNaN(callStrike) || isNaN(callPremium)) {
+                        app.showToast('❌ 請填寫所有欄位', 'error')
+                        return
+                    }
+                    
+                    const cost = callPremium * 100
+                    const maxProfit = (callStrike - stock + callPremium) * 100
+                    const maxLoss = (stock - callPremium) * 100
+                    
+                    document.getElementById('callCost').textContent = `$${cost.toFixed(2)}`
+                    document.getElementById('maxProfit').textContent = `$${maxProfit.toFixed(2)}`
+                    document.getElementById('maxLoss').textContent = `$${maxLoss.toFixed(2)}`
+                    
+                    app.showToast('✓ 保護性買權已計算', 'success')
+                }
             }
         }
         
-        // 頁面加載時初始化
-        window.addEventListener('DOMContentLoaded', () => app.init())
+        // ✅ 正確放置：在 app 物件外面，確保所有模組已定義完整
+        window.addEventListener('DOMContentLoaded', () => {
+            app.init()
+            app.etf.init()
+            app.portfolio.init()
+        })
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            app.init()
+            app.etf.init()
+            app.portfolio.init()
+        })
     </script>
 </body>
 </html>
