@@ -455,7 +455,7 @@
     </div>
     
     <!-- 公式編輯 Modal -->
-    <div id="formulaEditorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; display:flex; align-items:center; justify-content:center;">
+    <div id="formulaEditorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center;">
         <div style="background:white; padding:30px; border-radius:10px; max-width:500px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
             <h3 style="margin-bottom:20px;">編輯公式</h3>
             <div class="form-group">
@@ -468,7 +468,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">公式:</label>
-                <input type="text" id="formulaInput" class="form-input" placeholder="輸入新的公式">
+                <input type="text" id="formulaInput" class="form-input" placeholder="輸入新的公式" onkeyup="validateFormulaRealtime(this.value)">
             </div>
             <div id="formulaValidation" style="display:none; padding:10px; margin-top:10px; border-radius:5px; font-size:14px;"></div>
             <div style="margin-top:20px; display:flex; gap:10px;">
@@ -481,8 +481,8 @@
     <script>
         // ===================== Supabase 初始化 =====================
         // 用你從 Supabase 複製的值替換下面這三行
-        const SUPABASE_URL = 'https://tfmoaywkdgqfklibnqln.supabase.co'  // 替換成你的 Project URL
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmbW9heXdrZGdxZmtsaWJucWxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjA0MzEsImV4cCI6MjA4MzQzNjQzMX0.vtaIE2blCfOOzFnj8HiTeX5Ensaxd-_U708JjAynFc0'  // 替換成你的 Anon Key
+        const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co'  // 替換成你的 Project URL
+        const SUPABASE_KEY = 'eyJhbGc...'  // 替換成你的 Anon Key
         
         let supabase = null
         let userId = null
@@ -654,6 +654,8 @@
             formulaInput.value = CalculationFormulas[formulaId].formula
             
             modal.style.display = 'flex'
+            modal.style.flexDirection = 'column'
+            modal.style.cursor = 'pointer'
             
             validateFormulaRealtime(formulaInput.value)
         }
@@ -734,6 +736,7 @@
         function closeFormulaEditor() {
             const modal = document.getElementById('formulaEditorModal')
             modal.style.display = 'none'
+            modal.style.flexDirection = 'column'
             document.getElementById('formulaInput').value = ''
             document.getElementById('formulaValidation').style.display = 'none'
         }
@@ -887,6 +890,13 @@
                     })
                     .subscribe()
             }
+            
+            // ESC 鍵關閉 Modal
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeFormulaEditor()
+                }
+            })
         })
         
         // 定期同步
