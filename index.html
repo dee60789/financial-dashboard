@@ -267,6 +267,32 @@
                 opacity: 0;
             }
         }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
     </style>
 </head>
 <body>
@@ -280,16 +306,14 @@
         
         <!-- Tabs -->
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab(event, 'dashboard')">📈 儀表板</button>
-            <button class="tab-btn" onclick="switchTab(event, 'api-config')">🔑 API 配置</button>
-            <button class="tab-btn" onclick="switchTab(event, 'settings')">⚙️ 系統設置</button>
-            <button class="tab-btn" onclick="switchTab(event, 'formulas')">📐 計算公式</button>
-            <button class="tab-btn" onclick="switchTab(event, 'cloud-sync')">☁️ 雲端同步</button>
+            <button class="tab-btn active" onclick="app.switchTab(event, 'dashboard')">📈 儀表板</button>
+            <button class="tab-btn" onclick="app.switchTab(event, 'api-config')">🔑 API 配置</button>
+            <button class="tab-btn" onclick="app.switchTab(event, 'settings')">⚙️ 系統設置</button>
+            <button class="tab-btn" onclick="app.switchTab(event, 'formulas')">📐 計算公式</button>
+            <button class="tab-btn" onclick="app.switchTab(event, 'cloud-sync')">☁️ 雲端同步</button>
         </div>
         
         <!-- Tab Contents -->
-        
-        <!-- 儀表板 Tab -->
         <div id="dashboard" class="tab-content active">
             <div class="card">
                 <div class="card-header">📊 歡迎使用金融系統儀表板</div>
@@ -319,7 +343,6 @@
             <div class="card">
                 <div class="card-header">🔑 API 提供商配置</div>
                 
-                <!-- Alpha Vantage -->
                 <div style="margin-bottom: 20px; padding: 15px; background: white; border: 1px solid #e2e8f0; border-radius: 5px;">
                     <div style="margin-bottom: 10px;">
                         <span class="status-light" id="avStatus"></span>
@@ -330,10 +353,9 @@
                         <label class="form-label">API Key:</label>
                         <input type="password" id="avApiKey" class="form-input" placeholder="輸入你的 Alpha Vantage API Key">
                     </div>
-                    <button class="btn btn-primary" onclick="saveAPIConfig('AlphaVantage')">💾 保存</button>
+                    <button class="btn btn-primary" onclick="app.saveAPIConfig('AlphaVantage')">💾 保存</button>
                 </div>
                 
-                <!-- Financial Modeling Prep -->
                 <div style="margin-bottom: 20px; padding: 15px; background: white; border: 1px solid #e2e8f0; border-radius: 5px;">
                     <div style="margin-bottom: 10px;">
                         <span class="status-light" id="fmpStatus"></span>
@@ -344,10 +366,9 @@
                         <label class="form-label">API Key:</label>
                         <input type="password" id="fmpApiKey" class="form-input" placeholder="輸入你的 FMP API Key">
                     </div>
-                    <button class="btn btn-primary" onclick="saveAPIConfig('FinancialModelingPrep')">💾 保存</button>
+                    <button class="btn btn-primary" onclick="app.saveAPIConfig('FinancialModelingPrep')">💾 保存</button>
                 </div>
                 
-                <!-- Polygon -->
                 <div style="margin-bottom: 20px; padding: 15px; background: white; border: 1px solid #e2e8f0; border-radius: 5px;">
                     <div style="margin-bottom: 10px;">
                         <span class="status-light" id="polygonStatus"></span>
@@ -358,7 +379,7 @@
                         <label class="form-label">API Key:</label>
                         <input type="password" id="polygonApiKey" class="form-input" placeholder="輸入你的 Polygon API Key">
                     </div>
-                    <button class="btn btn-primary" onclick="saveAPIConfig('Polygon')">💾 保存</button>
+                    <button class="btn btn-primary" onclick="app.saveAPIConfig('Polygon')">💾 保存</button>
                 </div>
             </div>
         </div>
@@ -389,7 +410,7 @@
                     <input type="number" id="riskFreeRate" class="form-input" placeholder="輸入無風險利率，例如 2.5" min="0" max="20" step="0.1">
                 </div>
                 
-                <button class="btn btn-primary" onclick="saveSystemSettings()">💾 保存設置</button>
+                <button class="btn btn-primary" onclick="app.saveSystemSettings()">💾 保存設置</button>
             </div>
         </div>
         
@@ -411,14 +432,14 @@
                         <td style="padding: 10px;">股息收益率</td>
                         <td style="padding: 10px;"><code id="formula-dividend_yield-text">Annual Dividend / Stock Price</code></td>
                         <td style="padding: 10px; text-align: center;">
-                            <button class="btn btn-primary" onclick="editFormula('dividend_yield')" style="margin: 0; padding: 5px 10px; font-size: 12px;">✏️ 編輯</button>
+                            <button class="btn btn-primary" onclick="app.editFormula('dividend_yield')" style="margin: 0; padding: 5px 10px; font-size: 12px;">✏️ 編輯</button>
                         </td>
                     </tr>
                     <tr style="border-bottom: 1px solid #ddd;">
                         <td style="padding: 10px;">夏普比率</td>
                         <td style="padding: 10px;"><code id="formula-sharpe_ratio-text">(Return - Risk Free Rate) / Volatility</code></td>
                         <td style="padding: 10px; text-align: center;">
-                            <button class="btn btn-primary" onclick="editFormula('sharpe_ratio')" style="margin: 0; padding: 5px 10px; font-size: 12px;">✏️ 編輯</button>
+                            <button class="btn btn-primary" onclick="app.editFormula('sharpe_ratio')" style="margin: 0; padding: 5px 10px; font-size: 12px;">✏️ 編輯</button>
                         </td>
                     </tr>
                 </table>
@@ -439,8 +460,8 @@
                     </div>
                 </div>
                 
-                <button class="btn btn-success" onclick="manualSync()">🔄 手動同步</button>
-                <button class="btn btn-danger" onclick="clearAllCloudData()">🗑️ 清除雲端數據</button>
+                <button class="btn btn-success" onclick="app.manualSync()">🔄 手動同步</button>
+                <button class="btn btn-danger" onclick="app.clearAllCloudData()">🗑️ 清除雲端數據</button>
                 
                 <div style="margin-top: 20px; padding: 15px; background: #fef5e7; border-left: 4px solid #f39c12; border-radius: 5px;">
                     <strong>💡 提示：</strong>
@@ -455,8 +476,8 @@
     </div>
     
     <!-- 公式編輯 Modal -->
-    <div id="formulaEditorModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; align-items:center; justify-content:center;">
-        <div style="background:white; padding:30px; border-radius:10px; max-width:500px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    <div id="formulaEditorModal" class="modal">
+        <div class="modal-content">
             <h3 style="margin-bottom:20px;">編輯公式</h3>
             <div class="form-group">
                 <label class="form-label">公式ID:</label>
@@ -468,441 +489,349 @@
             </div>
             <div class="form-group">
                 <label class="form-label">公式:</label>
-                <input type="text" id="formulaInput" class="form-input" placeholder="輸入新的公式" onkeyup="validateFormulaRealtime(this.value)">
+                <input type="text" id="formulaInput" class="form-input" placeholder="輸入新的公式" onkeyup="app.validateFormulaRealtime(this.value)">
             </div>
             <div id="formulaValidation" style="display:none; padding:10px; margin-top:10px; border-radius:5px; font-size:14px;"></div>
             <div style="margin-top:20px; display:flex; gap:10px;">
-                <button class="btn btn-success" onclick="saveFormulaEdit()" style="flex:1;">💾 保存公式</button>
-                <button class="btn btn-secondary" onclick="closeFormulaEditor()" style="flex:1;">❌ 取消</button>
+                <button class="btn btn-success" onclick="app.saveFormulaEdit()" style="flex:1;">💾 保存公式</button>
+                <button class="btn btn-secondary" onclick="app.closeFormulaEditor()" style="flex:1;">❌ 取消</button>
             </div>
         </div>
     </div>
 
     <script>
-        // ===================== Supabase 初始化 =====================
-        // 用你從 Supabase 複製的值替換下面這三行
-        const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co'  // 替換成你的 Project URL
-        const SUPABASE_KEY = 'eyJhbGc...'  // 替換成你的 Anon Key
-        
-        let supabase = null
-        let userId = null
-        
-        // 初始化 Supabase
-        try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
-        } catch (error) {
-            console.error('Supabase 初始化失敗，請檢查配置:', error)
-        }
-        
-        // 獲取或創建用戶ID
-        userId = localStorage.getItem('userId')
-        if (!userId) {
-            userId = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now()
-            localStorage.setItem('userId', userId)
-        }
-        
-        // 顯示用戶ID
-        document.getElementById('userIdDisplay').textContent = userId
-        
-        // ===================== Toast 通知系統 =====================
-        function showToast(message, type = 'info') {
-            const toast = document.createElement('div')
-            toast.className = `toast ${type}`
-            toast.textContent = message
-            document.body.appendChild(toast)
+        // 統一的應用對象，避免全局變數污染
+        const app = {
+            supabaseClient: null,
+            userId: null,
             
-            setTimeout(() => {
-                toast.style.animation = 'slideOut 0.3s ease-in'
-                setTimeout(() => toast.remove(), 300)
-            }, 4000)
-        }
-        
-        // ===================== Tab 切換 =====================
-        function switchTab(event, tabName) {
-            // 隱藏所有 tab
-            const contents = document.querySelectorAll('.tab-content')
-            contents.forEach(content => content.classList.remove('active'))
-            
-            // 移除所有 tab 按鈕的 active
-            const buttons = document.querySelectorAll('.tab-btn')
-            buttons.forEach(btn => btn.classList.remove('active'))
-            
-            // 顯示選中的 tab
-            document.getElementById(tabName).classList.add('active')
-            event.target.classList.add('active')
-        }
-        
-        // ===================== API 配置保存 =====================
-        async function saveAPIConfig(provider) {
-            let apiKeyElement, statusElement, statusTextElement
-            
-            switch(provider) {
-                case 'AlphaVantage':
-                    apiKeyElement = document.getElementById('avApiKey')
-                    statusElement = document.getElementById('avStatus')
-                    statusTextElement = document.getElementById('avStatusText')
-                    break
-                case 'FinancialModelingPrep':
-                    apiKeyElement = document.getElementById('fmpApiKey')
-                    statusElement = document.getElementById('fmpStatus')
-                    statusTextElement = document.getElementById('fmpStatusText')
-                    break
-                case 'Polygon':
-                    apiKeyElement = document.getElementById('polygonApiKey')
-                    statusElement = document.getElementById('polygonStatus')
-                    statusTextElement = document.getElementById('polygonStatusText')
-                    break
-                default:
-                    return
-            }
-            
-            const apiKey = apiKeyElement.value.trim()
-            
-            if (!apiKey) {
-                showToast('❌ API Key 不能為空 | API Key cannot be empty', 'error')
-                return
-            }
-            
-            if (apiKey.length < 10) {
-                showToast('❌ API Key 過短 | API Key too short', 'error')
-                return
-            }
-            
-            try {
-                // 本地保存
-                let config = JSON.parse(localStorage.getItem('APIConfig') || '{}')
-                if (!config.providers) config.providers = {}
+            // 初始化應用
+            async init() {
+                // 初始化 Supabase（替換為你的值）
+                const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co'
+                const SUPABASE_KEY = 'eyJhbGc...'
                 
-                config.providers[provider] = {
-                    apiKey: apiKey,
-                    enabled: true,
-                    savedTime: new Date().toISOString()
+                try {
+                    if (window.supabase) {
+                        this.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+                    }
+                } catch (error) {
+                    console.error('Supabase 初始化失敗:', error)
                 }
                 
-                localStorage.setItem('APIConfig', JSON.stringify(config))
-                
-                // 雲端保存
-                await saveToCloud('APIConfig', config)
-                
-                // 更新狀態
-                statusElement.className = 'status-light connected'
-                statusTextElement.textContent = '✓ 已連接 | Connected'
-                
-                showToast(`✓ ${provider} API 已保存到雲端 | API saved to cloud`, 'success')
-                
-            } catch (error) {
-                showToast('❌ 保存失敗 | Save failed: ' + error.message, 'error')
-            }
-        }
-        
-        // ===================== 系統設置保存 =====================
-        async function saveSystemSettings() {
-            try {
-                const refreshMode = document.getElementById('refreshMode').value
-                const taxRate = parseFloat(document.getElementById('taxRate').value)
-                const riskFreeRate = parseFloat(document.getElementById('riskFreeRate').value)
-                
-                if (isNaN(taxRate) || taxRate < 0 || taxRate > 100) {
-                    showToast('❌ 稅率無效 (0-100) | Invalid tax rate (0-100)', 'error')
-                    return
+                // 獲取或創建用戶ID
+                this.userId = localStorage.getItem('userId')
+                if (!this.userId) {
+                    this.userId = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now()
+                    localStorage.setItem('userId', this.userId)
                 }
                 
-                if (isNaN(riskFreeRate) || riskFreeRate < 0 || riskFreeRate > 20) {
-                    showToast('❌ 無風險利率無效 (0-20) | Invalid risk-free rate (0-20)', 'error')
-                    return
-                }
+                document.getElementById('userIdDisplay').textContent = this.userId
                 
-                const settings = {
-                    refreshMode,
-                    taxRate,
-                    riskFreeRate,
-                    savedTime: new Date().toISOString()
-                }
+                // 綁定 ESC 鍵關閉 Modal
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.closeFormulaEditor()
+                    }
+                })
                 
-                localStorage.setItem('SystemSettings', JSON.stringify(settings))
+                // 初始化數據
+                this.loadLocalSettings()
+                await this.loadFromCloud()
+                this.updateSyncStatus()
                 
-                // 雲端保存
-                await saveToCloud('SystemSettings', settings)
-                
-                showToast(`✓ 系統設置已保存 | System settings saved`, 'success')
-                
-            } catch (error) {
-                showToast('❌ 設置保存失敗 | Failed to save settings: ' + error.message, 'error')
-            }
-        }
-        
-        // ===================== 公式編輯功能 =====================
-        const CalculationFormulas = {
-            dividend_yield: {
-                description: '股息收益率 | Dividend Yield = Annual Dividend / Stock Price',
-                formula: 'Annual Dividend / Stock Price'
+                // 定期同步
+                setInterval(() => this.loadFromCloud(), 30000)
             },
-            sharpe_ratio: {
-                description: '夏普比率 | Sharpe Ratio = (Return - Risk Free Rate) / Volatility',
-                formula: '(Return - Risk Free Rate) / Volatility'
-            }
-        }
-        
-        function editFormula(formulaId) {
-            const modal = document.getElementById('formulaEditorModal')
-            const formulaInput = document.getElementById('formulaInput')
-            const formulaIdDisplay = document.getElementById('formulaId')
-            const formulaDescription = document.getElementById('formulaDescription')
             
-            formulaIdDisplay.textContent = formulaId
-            formulaDescription.textContent = CalculationFormulas[formulaId].description
-            formulaInput.value = CalculationFormulas[formulaId].formula
-            
-            modal.style.display = 'flex'
-            modal.style.flexDirection = 'column'
-            modal.style.cursor = 'pointer'
-            
-            validateFormulaRealtime(formulaInput.value)
-        }
-        
-        function validateFormulaRealtime(formula) {
-            const validationDiv = document.getElementById('formulaValidation')
-            
-            if (!formula.trim()) {
-                validationDiv.style.display = 'none'
-                return
-            }
-            
-            const isValid = validateFormula(formula)
-            
-            validationDiv.style.display = 'block'
-            if (isValid) {
-                validationDiv.style.background = '#c6f6d5'
-                validationDiv.style.color = '#22543d'
-                validationDiv.textContent = '✓ 公式有效 | Formula is valid'
-            } else {
-                validationDiv.style.background = '#fed7d7'
-                validationDiv.style.color = '#742a2a'
-                validationDiv.textContent = '✗ 公式無效 | Formula is invalid'
-            }
-        }
-        
-        function validateFormula(formula) {
-            if (!formula || formula.trim().length === 0) return false
-            
-            const openParen = (formula.match(/\(/g) || []).length
-            const closeParen = (formula.match(/\)/g) || []).length
-            if (openParen !== closeParen) return false
-            
-            const validPatterns = /[\+\-\*\/\(\)\^\s\w\._\-]+/
-            if (!validPatterns.test(formula)) return false
-            
-            const dangerousPatterns = /[<>!&|]/
-            if (dangerousPatterns.test(formula)) return false
-            
-            return true
-        }
-        
-        async function saveFormulaEdit() {
-            const formulaId = document.getElementById('formulaId').textContent
-            const newFormula = document.getElementById('formulaInput').value.trim()
-            
-            if (!validateFormula(newFormula)) {
-                showToast('❌ 公式語法無效 | Formula syntax is invalid', 'error')
-                return
-            }
-            
-            try {
-                CalculationFormulas[formulaId].formula = newFormula
+            // Toast 通知
+            showToast(message, type = 'info') {
+                const toast = document.createElement('div')
+                toast.className = `toast ${type}`
+                toast.textContent = message
+                document.body.appendChild(toast)
                 
-                let formulas = JSON.parse(localStorage.getItem('CalculationFormulas') || '{}')
-                formulas[formulaId] = {
-                    formula: newFormula,
-                    savedTime: new Date().toISOString()
-                }
-                localStorage.setItem('CalculationFormulas', JSON.stringify(formulas))
+                setTimeout(() => {
+                    toast.style.animation = 'slideOut 0.3s ease-in'
+                    setTimeout(() => toast.remove(), 300)
+                }, 4000)
+            },
+            
+            // Tab 切換
+            switchTab(event, tabName) {
+                const contents = document.querySelectorAll('.tab-content')
+                contents.forEach(content => content.classList.remove('active'))
                 
-                // 雲端保存
-                await saveToCloud('CalculationFormulas', formulas)
+                const buttons = document.querySelectorAll('.tab-btn')
+                buttons.forEach(btn => btn.classList.remove('active'))
                 
-                const formulaCell = document.getElementById(`formula-${formulaId}-text`)
-                if (formulaCell) {
-                    formulaCell.textContent = newFormula
+                document.getElementById(tabName).classList.add('active')
+                event.target.classList.add('active')
+            },
+            
+            // 保存 API 配置
+            async saveAPIConfig(provider) {
+                let apiKeyElement, statusElement, statusTextElement
+                
+                const configMap = {
+                    'AlphaVantage': { key: 'avApiKey', status: 'avStatus', text: 'avStatusText' },
+                    'FinancialModelingPrep': { key: 'fmpApiKey', status: 'fmpStatus', text: 'fmpStatusText' },
+                    'Polygon': { key: 'polygonApiKey', status: 'polygonStatus', text: 'polygonStatusText' }
                 }
                 
-                showToast(`✓ 公式已保存 | Formula saved successfully`, 'success')
-                closeFormulaEditor()
+                const config = configMap[provider]
+                if (!config) return
                 
-            } catch (error) {
-                showToast('❌ 保存公式失敗 | Failed to save formula: ' + error.message, 'error')
-            }
-        }
-        
-        function closeFormulaEditor() {
-            const modal = document.getElementById('formulaEditorModal')
-            modal.style.display = 'none'
-            modal.style.flexDirection = 'column'
-            document.getElementById('formulaInput').value = ''
-            document.getElementById('formulaValidation').style.display = 'none'
-        }
-        
-        // ===================== 雲端同步核心功能 =====================
-        async function saveToCloud(dataType, data) {
-            if (!supabase) {
-                console.warn('Supabase 未初始化')
-                return
-            }
-            
-            try {
-                const { error } = await supabase
-                    .from('user_data')
-                    .upsert({
-                        user_id: userId,
-                        [dataType.toLowerCase()]: data,
-                        updated_at: new Date().toISOString()
-                    })
+                apiKeyElement = document.getElementById(config.key)
+                statusElement = document.getElementById(config.status)
+                statusTextElement = document.getElementById(config.text)
                 
-                if (error) throw error
+                const apiKey = apiKeyElement.value.trim()
                 
-                console.log(`✓ ${dataType} 已保存到雲端`)
-                updateSyncStatus()
+                if (!apiKey) {
+                    this.showToast('❌ API Key 不能為空 | API Key cannot be empty', 'error')
+                    return
+                }
                 
-            } catch (error) {
-                console.error(`雲端保存失敗 (${dataType}):`, error)
-            }
-        }
-        
-        async function loadFromCloud() {
-            if (!supabase) {
-                console.warn('Supabase 未初始化')
-                return
-            }
-            
-            try {
-                const { data, error } = await supabase
-                    .from('user_data')
-                    .select('*')
-                    .eq('user_id', userId)
-                    .single()
+                if (apiKey.length < 10) {
+                    this.showToast('❌ API Key 過短 | API Key too short', 'error')
+                    return
+                }
                 
-                if (error && error.code !== 'PGRST116') throw error
-                
-                if (data) {
-                    if (data.apiconfig) localStorage.setItem('APIConfig', JSON.stringify(data.apiconfig))
-                    if (data.systemsettings) localStorage.setItem('SystemSettings', JSON.stringify(data.systemsettings))
-                    if (data.calculationformulas) localStorage.setItem('CalculationFormulas', JSON.stringify(data.calculationformulas))
+                try {
+                    let configData = JSON.parse(localStorage.getItem('APIConfig') || '{}')
+                    if (!configData.providers) configData.providers = {}
                     
-                    console.log('✓ 已從雲端恢復數據')
-                    loadLocalSettings()
+                    configData.providers[provider] = {
+                        apiKey: apiKey,
+                        enabled: true,
+                        savedTime: new Date().toISOString()
+                    }
+                    
+                    localStorage.setItem('APIConfig', JSON.stringify(configData))
+                    await this.saveToCloud('APIConfig', configData)
+                    
+                    statusElement.className = 'status-light connected'
+                    statusTextElement.textContent = '✓ 已連接 | Connected'
+                    
+                    this.showToast(`✓ ${provider} API 已保存到雲端`, 'success')
+                } catch (error) {
+                    this.showToast('❌ 保存失敗: ' + error.message, 'error')
+                }
+            },
+            
+            // 保存系統設置
+            async saveSystemSettings() {
+                try {
+                    const refreshMode = document.getElementById('refreshMode').value
+                    const taxRate = parseFloat(document.getElementById('taxRate').value)
+                    const riskFreeRate = parseFloat(document.getElementById('riskFreeRate').value)
+                    
+                    if (isNaN(taxRate) || taxRate < 0 || taxRate > 100) {
+                        this.showToast('❌ 稅率無效 (0-100)', 'error')
+                        return
+                    }
+                    
+                    if (isNaN(riskFreeRate) || riskFreeRate < 0 || riskFreeRate > 20) {
+                        this.showToast('❌ 無風險利率無效 (0-20)', 'error')
+                        return
+                    }
+                    
+                    const settings = { refreshMode, taxRate, riskFreeRate, savedTime: new Date().toISOString() }
+                    
+                    localStorage.setItem('SystemSettings', JSON.stringify(settings))
+                    await this.saveToCloud('SystemSettings', settings)
+                    
+                    this.showToast('✓ 系統設置已保存', 'success')
+                } catch (error) {
+                    this.showToast('❌ 設置保存失敗: ' + error.message, 'error')
+                }
+            },
+            
+            // 公式數據
+            formulas: {
+                dividend_yield: {
+                    description: '股息收益率 | Dividend Yield = Annual Dividend / Stock Price',
+                    formula: 'Annual Dividend / Stock Price'
+                },
+                sharpe_ratio: {
+                    description: '夏普比率 | Sharpe Ratio = (Return - Risk Free Rate) / Volatility',
+                    formula: '(Return - Risk Free Rate) / Volatility'
+                }
+            },
+            
+            // 編輯公式
+            editFormula(formulaId) {
+                const modal = document.getElementById('formulaEditorModal')
+                const formulaInput = document.getElementById('formulaInput')
+                
+                document.getElementById('formulaId').textContent = formulaId
+                document.getElementById('formulaDescription').textContent = this.formulas[formulaId].description
+                formulaInput.value = this.formulas[formulaId].formula
+                
+                modal.classList.add('active')
+                this.validateFormulaRealtime(formulaInput.value)
+            },
+            
+            // 驗證公式
+            validateFormulaRealtime(formula) {
+                const validationDiv = document.getElementById('formulaValidation')
+                
+                if (!formula.trim()) {
+                    validationDiv.style.display = 'none'
+                    return
                 }
                 
-            } catch (error) {
-                console.error('雲端載入失敗:', error)
-            }
-        }
-        
-        function loadLocalSettings() {
-            try {
+                const isValid = this.validateFormula(formula)
+                
+                validationDiv.style.display = 'block'
+                if (isValid) {
+                    validationDiv.style.background = '#c6f6d5'
+                    validationDiv.style.color = '#22543d'
+                    validationDiv.textContent = '✓ 公式有效'
+                } else {
+                    validationDiv.style.background = '#fed7d7'
+                    validationDiv.style.color = '#742a2a'
+                    validationDiv.textContent = '✗ 公式無效'
+                }
+            },
+            
+            validateFormula(formula) {
+                if (!formula || formula.trim().length === 0) return false
+                const openParen = (formula.match(/\(/g) || []).length
+                const closeParen = (formula.match(/\)/g) || []).length
+                if (openParen !== closeParen) return false
+                const dangerousPatterns = /[<>!&|]/
+                if (dangerousPatterns.test(formula)) return false
+                return true
+            },
+            
+            // 保存公式編輯
+            async saveFormulaEdit() {
+                const formulaId = document.getElementById('formulaId').textContent
+                const newFormula = document.getElementById('formulaInput').value.trim()
+                
+                if (!this.validateFormula(newFormula)) {
+                    this.showToast('❌ 公式語法無效', 'error')
+                    return
+                }
+                
+                try {
+                    this.formulas[formulaId].formula = newFormula
+                    
+                    let formulas = JSON.parse(localStorage.getItem('CalculationFormulas') || '{}')
+                    formulas[formulaId] = { formula: newFormula, savedTime: new Date().toISOString() }
+                    localStorage.setItem('CalculationFormulas', JSON.stringify(formulas))
+                    
+                    await this.saveToCloud('CalculationFormulas', formulas)
+                    
+                    const formulaCell = document.getElementById(`formula-${formulaId}-text`)
+                    if (formulaCell) formulaCell.textContent = newFormula
+                    
+                    this.showToast('✓ 公式已保存', 'success')
+                    this.closeFormulaEditor()
+                } catch (error) {
+                    this.showToast('❌ 保存公式失敗: ' + error.message, 'error')
+                }
+            },
+            
+            // 關閉公式編輯器
+            closeFormulaEditor() {
+                const modal = document.getElementById('formulaEditorModal')
+                modal.classList.remove('active')
+                document.getElementById('formulaInput').value = ''
+                document.getElementById('formulaValidation').style.display = 'none'
+            },
+            
+            // 雲端保存
+            async saveToCloud(dataType, data) {
+                if (!this.supabaseClient) return
+                
+                try {
+                    const { error } = await this.supabaseClient
+                        .from('user_data')
+                        .upsert({
+                            user_id: this.userId,
+                            [dataType.toLowerCase()]: data,
+                            updated_at: new Date().toISOString()
+                        })
+                    
+                    if (error) throw error
+                    this.updateSyncStatus()
+                } catch (error) {
+                    console.error(`雲端保存失敗 (${dataType}):`, error)
+                }
+            },
+            
+            // 雲端載入
+            async loadFromCloud() {
+                if (!this.supabaseClient) return
+                
+                try {
+                    const { data, error } = await this.supabaseClient
+                        .from('user_data')
+                        .select('*')
+                        .eq('user_id', this.userId)
+                        .single()
+                    
+                    if (error && error.code !== 'PGRST116') throw error
+                    
+                    if (data) {
+                        if (data.apiconfig) localStorage.setItem('APIConfig', JSON.stringify(data.apiconfig))
+                        if (data.systemsettings) localStorage.setItem('SystemSettings', JSON.stringify(data.systemsettings))
+                        if (data.calculationformulas) localStorage.setItem('CalculationFormulas', JSON.stringify(data.calculationformulas))
+                        this.loadLocalSettings()
+                    }
+                } catch (error) {
+                    console.error('雲端載入失敗:', error)
+                }
+            },
+            
+            // 本地設置
+            loadLocalSettings() {
                 const settings = JSON.parse(localStorage.getItem('SystemSettings') || '{}')
                 if (settings.refreshMode) document.getElementById('refreshMode').value = settings.refreshMode
                 if (settings.taxRate) document.getElementById('taxRate').value = settings.taxRate
                 if (settings.riskFreeRate) document.getElementById('riskFreeRate').value = settings.riskFreeRate
+            },
+            
+            // 手動同步
+            async manualSync() {
+                this.showToast('🔄 正在同步數據...', 'info')
+                await this.loadFromCloud()
+                this.updateSyncStatus()
+            },
+            
+            // 清除雲端數據
+            async clearAllCloudData() {
+                if (!confirm('確定要清除所有雲端數據嗎？')) return
+                if (!this.supabaseClient) return
                 
-                const apiConfig = JSON.parse(localStorage.getItem('APIConfig') || '{}')
-                if (apiConfig.providers) {
-                    Object.keys(apiConfig.providers).forEach(provider => {
-                        if (apiConfig.providers[provider].apiKey) {
-                            updateStatusLight(provider, 'connected')
-                        }
-                    })
+                try {
+                    await this.supabaseClient.from('user_data').delete().eq('user_id', this.userId)
+                    this.showToast('✓ 雲端數據已清除', 'success')
+                } catch (error) {
+                    this.showToast('❌ 清除失敗: ' + error.message, 'error')
                 }
-            } catch (error) {
-                console.error('本地設置載入失敗:', error)
-            }
-        }
-        
-        function updateStatusLight(provider, status) {
-            const statusMap = {
-                'AlphaVantage': { status: 'avStatus', text: 'avStatusText' },
-                'FinancialModelingPrep': { status: 'fmpStatus', text: 'fmpStatusText' },
-                'Polygon': { status: 'polygonStatus', text: 'polygonStatusText' }
-            }
+            },
             
-            if (!statusMap[provider]) return
-            
-            const statusEl = document.getElementById(statusMap[provider].status)
-            const textEl = document.getElementById(statusMap[provider].text)
-            
-            statusEl.className = `status-light ${status}`
-            textEl.textContent = status === 'connected' ? '✓ 已連接 | Connected' : '未配置 | Unconfigured'
-        }
-        
-        async function manualSync() {
-            showToast('🔄 正在同步數據... | Syncing data...', 'info')
-            await loadFromCloud()
-            updateSyncStatus()
-        }
-        
-        function updateSyncStatus() {
-            if (!supabase) {
-                document.getElementById('cloudSyncStatus').textContent = '❌ 未連接 | Not connected'
-                document.getElementById('syncStatusIcon').textContent = '❌'
-                return
-            }
-            
-            document.getElementById('cloudSyncStatus').textContent = '✓ 已同步 | Synced'
-            document.getElementById('syncStatusIcon').textContent = '✓'
-            document.getElementById('lastSyncTime').textContent = new Date().toLocaleString('zh-HK')
-            document.getElementById('syncStatus').textContent = '✓ 雲端連接正常'
-        }
-        
-        async function clearAllCloudData() {
-            if (!confirm('確定要清除所有雲端數據嗎？此操作無法撤銷！')) return
-            
-            if (!supabase) return
-            
-            try {
-                await supabase
-                    .from('user_data')
-                    .delete()
-                    .eq('user_id', userId)
+            // 更新同步狀態
+            updateSyncStatus() {
+                if (!this.supabaseClient) {
+                    document.getElementById('cloudSyncStatus').textContent = '❌ 未連接'
+                    document.getElementById('syncStatusIcon').textContent = '❌'
+                    return
+                }
                 
-                showToast('✓ 雲端數據已清除', 'success')
-            } catch (error) {
-                showToast('❌ 清除失敗: ' + error.message, 'error')
+                document.getElementById('cloudSyncStatus').textContent = '✓ 已同步'
+                document.getElementById('syncStatusIcon').textContent = '✓'
+                document.getElementById('lastSyncTime').textContent = new Date().toLocaleString('zh-HK')
+                document.getElementById('syncStatus').textContent = '✓ 雲端連接正常'
             }
         }
         
-        // ===================== 初始化 =====================
-        window.addEventListener('DOMContentLoaded', async () => {
-            loadLocalSettings()
-            await loadFromCloud()
-            updateSyncStatus()
-            
-            // 監聽實時變化
-            if (supabase) {
-                supabase
-                    .channel('user_data_changes')
-                    .on('postgres_changes', {
-                        event: 'UPDATE',
-                        schema: 'public',
-                        table: 'user_data',
-                        filter: `user_id=eq.${userId}`
-                    }, (payload) => {
-                        console.log('🔄 數據已在其他設備更新')
-                        showToast('🔄 數據已在其他設備更新 | Data synced from other device', 'info')
-                        loadFromCloud()
-                    })
-                    .subscribe()
-            }
-            
-            // ESC 鍵關閉 Modal
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    closeFormulaEditor()
-                }
-            })
-        })
-        
-        // 定期同步
-        setInterval(async () => {
-            await loadFromCloud()
-        }, 30000) // 每30秒同步一次
+        // 頁面加載時初始化
+        window.addEventListener('DOMContentLoaded', () => app.init())
     </script>
 </body>
 </html>
