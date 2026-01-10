@@ -1,1405 +1,2232 @@
 <!DOCTYPE html>
-<html lang="zh-HK">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>金融系統儀表板 Pro v2.3 - 完整版</title>
-    
-    <!-- Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 5px;
-        }
-        
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-        
-        .tabs {
-            display: flex;
-            background: #f5f5f5;
-            border-bottom: 2px solid #ddd;
-            overflow-x: auto;
-        }
-        
-        .tab-btn {
-            flex: 1;
-            padding: 15px 20px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            color: #666;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            min-width: fit-content;
-        }
-        
-        .tab-btn:hover {
-            background: #efefef;
-        }
-        
-        .tab-btn.active {
-            color: #667eea;
-            background: white;
-            border-bottom: 3px solid #667eea;
-        }
-        
-        .tab-content {
-            display: none;
-            padding: 30px;
-            max-height: calc(100vh - 300px);
-            overflow-y: auto;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .card {
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .card-header {
-            font-weight: 600;
-            font-size: 16px;
-            margin-bottom: 15px;
-            color: #333;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        .form-label {
-            display: block;
-            font-weight: 500;
-            margin-bottom: 5px;
-            color: #555;
-            font-size: 14px;
-        }
-        
-        .form-input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-            transition: border 0.3s ease;
-        }
-        
-        .form-input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 5px rgba(102,126,234,0.3);
-        }
-        
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            margin-right: 10px;
-            margin-bottom: 10px;
-        }
-        
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102,126,234,0.3);
-        }
-        
-        .btn-success {
-            background: #48bb78;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background: #38a169;
-        }
-        
-        .btn-danger {
-            background: #f56565;
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background: #e53e3e;
-        }
-        
-        .btn-secondary {
-            background: #a0aec0;
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background: #718096;
-        }
-        
-        .btn-info {
-            background: #4299e1;
-            color: white;
-        }
-        
-        .btn-info:hover {
-            background: #3182ce;
-        }
-        
-        .status-light {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 8px;
-            animation: pulse 2s infinite;
-        }
-        
-        .status-light.connected {
-            background: #48bb78;
-        }
-        
-        .status-light.disconnected {
-            background: #f56565;
-        }
-        
-        .status-light.connecting {
-            background: #ecc94b;
-            animation: pulse 1s infinite;
-        }
-        
-        .status-light.unconfigured {
-            background: #cbd5e0;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            z-index: 9999;
-            animation: slideIn 0.3s ease;
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        .toast.success {
-            background: #48bb78;
-        }
-        
-        .toast.error {
-            background: #f56565;
-        }
-        
-        .toast.info {
-            background: #4299e1;
-        }
-        
-        .toast.warning {
-            background: #ed8936;
-        }
-        
-        .sync-status {
-            display: flex;
-            align-items: center;
-            margin-top: 20px;
-            padding: 10px;
-            background: #e6fffa;
-            border-left: 4px solid #38b2ac;
-            border-radius: 4px;
-        }
-        
-        .sync-status.error {
-            background: #fff5f5;
-            border-left-color: #f56565;
-        }
-        
-        @keyframes slideOut {
-            to {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-        }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 10000;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .modal.active {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        
-        .stat-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            margin-bottom: 15px;
-        }
-        
-        .stat-box-value {
-            font-size: 28px;
-            font-weight: 600;
-            margin: 10px 0;
-        }
-        
-        .stat-box-label {
-            font-size: 12px;
-            opacity: 0.9;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        
-        table th {
-            background: #f5f5f5;
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
-            border-bottom: 2px solid #ddd;
-        }
-        
-        table td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        table tr:hover {
-            background: #f9f9f9;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>金融系統儀表板 Pro v4.0 - Supabase 雲端版</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-alt: #020617;
+      --card: #0b1120;
+      --card-soft: #111827;
+      --primary: #3b82f6;
+      --accent: #22c55e;
+      --danger: #ef4444;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+      --yellow: #eab308;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #111827 0, #020617 55%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    a { color: var(--primary); text-decoration: none; }
+
+    /* ===== Auth 頁 ===== */
+    .auth-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, #020617 0, #020617 55%, #000 100%);
+    }
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      background: #020617;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 32px 28px 28px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.8);
+    }
+    .auth-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .auth-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: radial-gradient(circle at 20% 20%, #22c55e, #0ea5e9 45%, #1d4ed8 80%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .auth-title-text {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .auth-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .auth-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+    .auth-cloud-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .auth-group { margin-bottom: 16px; }
+    .auth-group label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .auth-input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #020617;
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+    }
+    .auth-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px rgba(59,130,246,0.5);
+    }
+    .auth-btn {
+      width: 100%;
+      border-radius: 999px;
+      border: none;
+      padding: 10px 0;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .auth-btn-primary {
+      background: linear-gradient(135deg, #2563eb, #22c55e);
+      color: #fff;
+      box-shadow: 0 10px 30px rgba(37,99,235,0.6);
+    }
+    .auth-btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .auth-toggle {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .auth-toggle a { cursor: pointer; }
+    .auth-msg {
+      font-size: 12px;
+      margin-bottom: 12px;
+      padding: 8px 10px;
+      border-radius: 8px;
+    }
+    .auth-msg.error {
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      background: rgba(239,68,68,0.1);
+    }
+    .auth-msg.success {
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      background: rgba(34,197,94,0.08);
+    }
+    .hidden { display: none; }
+
+    /* ===== v2.4 儀表板 Layout ===== */
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      background: linear-gradient(135deg, #020617 0, #020617 40%, #020617 100%);
+    }
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(15,23,42,0.95);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .title-block {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: radial-gradient(circle at 20% 20%, #22c55e, #0ea5e9 45%, #1d4ed8 80%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .title-main { font-weight: 600; }
+    .title-sub { font-size: 12px; color: var(--muted); }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .cloud-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+    .user-block {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .sync-status {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+    .sync-status span.status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(34,197,94,0.4);
+      color: #bbf7d0;
+      background: rgba(22,163,74,0.08);
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 0, #fbbf24, #f97316 60%, #9f1239);
+      border: 1px solid rgba(148,163,184,0.3);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: 0;
+      height: calc(100vh - 56px);
+    }
+    .sidebar {
+      border-right: 1px solid var(--border);
+      background: radial-gradient(circle at top, #020617, #020617 55%, #020617 100%);
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .nav-group-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0 10px;
+    }
+    .nav-list {
+      list-style: none;
+      padding: 0;
+      margin: 4px 0 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s, transform 0.08s;
+    }
+    .nav-item-icon {
+      width: 18px;
+      text-align: center;
+    }
+    .nav-item.active {
+      background: linear-gradient(90deg, rgba(59,130,246,0.2), transparent);
+      color: #e5e7eb;
+    }
+    .nav-item:hover {
+      background: rgba(15,23,42,0.9);
+      color: #e5e7eb;
+      transform: translateX(1px);
+    }
+    .nav-foot-note {
+      margin-top: auto;
+      font-size: 11px;
+      color: var(--muted);
+      padding: 0 10px;
+      opacity: 0.7;
+    }
+
+    .main {
+      padding: 16px 20px 24px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .top-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .connection-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px dashed var(--border);
+      color: var(--muted);
+    }
+    .connection-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--yellow);
+      box-shadow: 0 0 8px rgba(234,179,8,0.5);
+    }
+    .module-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+    .module-tag {
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(31,41,55,0.9);
+    }
+    .control-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .select, .input {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .select select, .input input {
+      background: var(--card);
+      border-radius: 6px;
+      border: 1px solid rgba(55,65,81,0.8);
+      color: var(--text);
+      font-size: 12px;
+      padding: 4px 8px;
+      outline: none;
+      min-width: 80px;
+    }
+    .btn {
+      border: none;
+      border-radius: 999px;
+      font-size: 12px;
+      padding: 5px 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.12s, box-shadow 0.12s, transform 0.06s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #22c55e);
+      color: white;
+      box-shadow: 0 8px 24px rgba(37,99,235,0.45);
+    }
+    .btn-outline {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover {
+      background: rgba(15,23,42,0.9);
+      color: var(--text);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0,2.2fr) minmax(0,1.6fr);
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .card {
+      background: radial-gradient(circle at top left, rgba(37,99,235,0.08), transparent),
+        radial-gradient(circle at bottom right, rgba(22,163,74,0.06), transparent),
+        #020617;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 14px 14px 12px;
+      box-shadow: 0 18px 45px rgba(15,23,42,0.85);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-subtitle {
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .pill-soft {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(31,41,55,0.9);
+      color: var(--muted);
+    }
+    .pill-soft.accent {
+      border-color: rgba(34,197,94,0.7);
+      color: #bbf7d0;
+      background: rgba(22,163,74,0.06);
+    }
+
+    .metric-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+    .metric {
+      flex: 1;
+      min-width: 120px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(15,23,42,0.95);
+      border: 1px solid rgba(31,41,55,0.9);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .metric-label {
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .metric-value {
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .metric-change {
+      font-size: 11px;
+    }
+    .metric-change.up { color: #4ade80; }
+    .metric-pill {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(31,41,55,0.9);
+      color: var(--muted);
+    }
+
+    .card-body {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .placeholder {
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(15,23,42,0.9);
+      border: 1px dashed rgba(55,65,81,0.8);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    .table th, .table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(31,41,55,0.9);
+      text-align: left;
+      white-space: nowrap;
+    }
+    .table th {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .table tbody tr:hover {
+      background: rgba(15,23,42,0.9);
+    }
+    .muted { color: var(--muted); }
+    .tag-risk-low {
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(22,163,74,0.05);
+      border: 1px solid rgba(34,197,94,0.4);
+      color: #bbf7d0;
+      font-size: 11px;
+    }
+    .tag-risk-med {
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(234,179,8,0.05);
+      border: 1px solid rgba(234,179,8,0.45);
+      color: #fef08a;
+      font-size: 11px;
+    }
+
+    .footer-meta {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--muted);
+      align-items: center;
+      justify-content: space-between;
+    }
+    .user-id-box {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(15,23,42,0.95);
+      border: 1px dashed rgba(55,65,81,0.8);
+      font-size: 11px;
+      color: #e5e7eb;
+    }
+
+    @media (max-width: 960px) {
+      .layout { grid-template-columns: 60px 1fr; }
+      .nav-group-label, .nav-foot-note { display: none; }
+      .nav-item span.label { display: none; }
+    }
+    @media (max-width: 720px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+    @media (max-width: 600px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>📊 金融系統儀表板 Pro v2.3</h1>
-            <p>☁️ 雲端版 | 6 大功能模組 | 全設備同步 | 實時更新</p>
-            <p id="syncStatus" style="margin-top: 10px; font-size: 12px; opacity: 0.8;">🔄 連接中...</p>
-        </div>
-        
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab-btn active" onclick="app.switchTab(event, 'dashboard')">📊 儀表板</button>
-            <button class="tab-btn" onclick="app.switchTab(event, 'etf-tracker')">📈 ETF 追蹤</button>
-            <button class="tab-btn" onclick="app.switchTab(event, 'portfolio')">💰 投資組合</button>
-            <button class="tab-btn" onclick="app.switchTab(event, 'risk')">⚠️ 風險評估</button>
-            <button class="tab-btn" onclick="app.switchTab(event, 'cashflow')">💵 現金流</button>
-            <button class="tab-btn" onclick="app.switchTab(event, 'derivatives')">📉 衍生品</button>
-            <button class="tab-btn" onclick="app.switchTab(event, 'api-config')">🔑 API 配置</button>
-            <button class="tab-btn" onclick="app.switchTab(event, 'settings')">⚙️ 設置</button>
-        </div>
-        
-        <!-- Dashboard Tab -->
-        <div id="dashboard" class="tab-content active">
-            <div class="card">
-                <div class="card-header">📊 金融儀表板</div>
-                <p style="margin-bottom: 15px;">歡迎使用完整的金融分析系統。此版本包含 6 大功能模組，所有數據自動同步到雲端。</p>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
-                    <div class="stat-box">
-                        <div class="stat-box-label">總資產</div>
-                        <div class="stat-box-value" id="totalAssets">$0.00</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-box-label">總收益</div>
-                        <div class="stat-box-value" id="totalGain" style="color: #48bb78;">+0.00%</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-box-label">持倉數量</div>
-                        <div class="stat-box-value" id="holdingCount">0</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-box-label">月度被動收入</div>
-                        <div class="stat-box-value" id="monthlyIncome">$0.00</div>
-                    </div>
-                </div>
-            </div>
 
-            <div class="card">
-                <div class="card-header">🎯 6 大功能模組總覽</div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
-                    <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; border-radius: 5px;">
-                        <div style="font-weight: 600; color: #1565c0; margin-bottom: 8px;">📈 ETF 追蹤器</div>
-                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #555;">
-                            <li>實時 ETF 查詢 (6 個熱門 ETF)</li>
-                            <li>監控清單管理</li>
-                            <li>5 年 / 10 年 CAGR 參考</li>
-                        </ul>
-                    </div>
-
-                    <div style="background: #f3e5f5; border-left: 4px solid #9c27b0; padding: 15px; border-radius: 5px;">
-                        <div style="font-weight: 600; color: #6a1b9a; margin-bottom: 8px;">💰 投資組合管理</div>
-                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #555;">
-                            <li>新增 / 刪除持倉</li>
-                            <li>成本與現值計算</li>
-                            <li>ROI 與收益統計</li>
-                        </ul>
-                    </div>
-
-                    <div style="background: #ffebee; border-left: 4px solid #f44336; padding: 15px; border-radius: 5px;">
-                        <div style="font-weight: 600; color: #c62828; margin-bottom: 8px;">⚠️ 風險評估</div>
-                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #555;">
-                            <li>風險等級評分 (1-10)</li>
-                            <li>波動率與回撤監控</li>
-                            <li>對沖建議</li>
-                        </ul>
-                    </div>
-
-                    <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 15px; border-radius: 5px;">
-                        <div style="font-weight: 600; color: #2e7d32; margin-bottom: 8px;">💵 現金流計算</div>
-                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #555;">
-                            <li>被動收入計算</li>
-                            <li>生活方式等價</li>
-                            <li>高收益資產推薦</li>
-                        </ul>
-                    </div>
-
-                    <div style="background: #fce4ec; border-left: 4px solid #e91e63; padding: 15px; border-radius: 5px;">
-                        <div style="font-weight: 600; color: #ad1457; margin-bottom: 8px;">📉 衍生品策略</div>
-                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #555;">
-                            <li>賣出看跌期權計算</li>
-                            <li>保護性買權成本</li>
-                            <li>風險控制度量</li>
-                        </ul>
-                    </div>
-
-                    <div style="background: #fff9e6; border-left: 4px solid #f39c12; padding: 15px; border-radius: 5px;">
-                        <div style="font-weight: 600; color: #d68910; margin-bottom: 8px;">🔐 API 與設置</div>
-                        <ul style="margin: 0; padding-left: 20px; font-size: 12px; color: #555;">
-                            <li>多個 API 提供商配置</li>
-                            <li>系統設置管理</li>
-                            <li>公式自定義</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ETF Tracker Tab -->
-        <div id="etf-tracker" class="tab-content">
-            <div class="card">
-                <div class="card-header">📈 ETF 追蹤器</div>
-                
-                <div class="form-group">
-                    <label class="form-label">🔍 搜尋 ETF 代碼:</label>
-                    <input type="text" id="etfSearchInput" class="form-input" placeholder="例如：QQQ" onkeyup="app.etf.searchETF()">
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <strong style="font-size: 13px;">⭐ 熱門 ETF 快速查詢:</strong>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;">
-                        <button class="btn btn-primary" onclick="app.etf.quickSearch('QQQ')" style="margin: 0; padding: 8px 12px;">QQQ</button>
-                        <button class="btn btn-primary" onclick="app.etf.quickSearch('VGT')" style="margin: 0; padding: 8px 12px;">VGT</button>
-                        <button class="btn btn-primary" onclick="app.etf.quickSearch('SMH')" style="margin: 0; padding: 8px 12px;">SMH</button>
-                        <button class="btn btn-primary" onclick="app.etf.quickSearch('VOO')" style="margin: 0; padding: 8px 12px;">VOO</button>
-                        <button class="btn btn-primary" onclick="app.etf.quickSearch('XLK')" style="margin: 0; padding: 8px 12px;">XLK</button>
-                        <button class="btn btn-primary" onclick="app.etf.quickSearch('ARKK')" style="margin: 0; padding: 8px 12px;">ARKK</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">📊 ETF 詳細資訊表</div>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>代碼</th>
-                                <th>名稱</th>
-                                <th>類型</th>
-                                <th>5 年 CAGR</th>
-                                <th>10 年 CAGR</th>
-                                <th>描述</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="etfTableBody">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">🎯 我的 ETF 監控清單</div>
-                <div id="watchlistContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; margin-top: 15px;"></div>
-                <div id="emptyWatchlist" style="text-align: center; padding: 40px; color: #999; background: #f9f9f9; border-radius: 5px;">
-                    <p style="margin: 0; font-size: 14px;">📌 還沒有監控任何 ETF</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Portfolio Tab -->
-        <div id="portfolio" class="tab-content">
-            <div class="card">
-                <div class="card-header">💰 投資組合管理</div>
-                <p style="margin-bottom: 15px; font-size: 13px; color: #666;">管理你的投資持倉，追蹤成本、現值、收益率。</p>
-            </div>
-
-            <div class="card">
-                <div class="card-header">➕ 新增持倉</div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
-                    <div class="form-group">
-                        <label class="form-label">票代碼 | Ticker:</label>
-                        <input type="text" id="portfolioTicker" class="form-input" placeholder="例如：AAPL">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">股數 | Shares:</label>
-                        <input type="number" id="portfolioShares" class="form-input" placeholder="100" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">買入價 | Cost/Share:</label>
-                        <input type="number" id="portfolioCost" class="form-input" placeholder="150.00" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">現價 | Current Price:</label>
-                        <input type="number" id="portfolioPrice" class="form-input" placeholder="160.00" step="0.01">
-                    </div>
-                </div>
-                <button class="btn btn-success" onclick="app.portfolio.addHolding()">➕ 加入持倉</button>
-            </div>
-
-            <div class="card">
-                <div class="card-header">📋 持倉清單</div>
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>代碼</th>
-                                <th>股數</th>
-                                <th>買入價</th>
-                                <th>總成本</th>
-                                <th>現價</th>
-                                <th>現值</th>
-                                <th>收益</th>
-                                <th>收益率</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="portfolioTableBody">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">📈 投資組合統計</div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
-                    <div style="background: #e3f2fd; padding: 15px; border-radius: 5px; border-left: 4px solid #2196f3;">
-                        <div style="font-size: 12px; color: #666;">總投資成本</div>
-                        <div style="font-size: 18px; font-weight: 600; color: #1565c0;" id="portfolioTotalCost">$0.00</div>
-                    </div>
-                    <div style="background: #e3f2fd; padding: 15px; border-radius: 5px; border-left: 4px solid #2196f3;">
-                        <div style="font-size: 12px; color: #666;">當前總值</div>
-                        <div style="font-size: 18px; font-weight: 600; color: #1565c0;" id="portfolioTotalValue">$0.00</div>
-                    </div>
-                    <div style="background: #e8f5e9; padding: 15px; border-radius: 5px; border-left: 4px solid #4caf50;">
-                        <div style="font-size: 12px; color: #666;">總收益</div>
-                        <div style="font-size: 18px; font-weight: 600; color: #4caf50;" id="portfolioTotalGain">+$0.00</div>
-                    </div>
-                    <div style="background: #e8f5e9; padding: 15px; border-radius: 5px; border-left: 4px solid #4caf50;">
-                        <div style="font-size: 12px; color: #666;">總收益率</div>
-                        <div style="font-size: 18px; font-weight: 600; color: #4caf50;" id="portfolioTotalROI">+0.00%</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Risk Assessment Tab -->
-        <div id="risk" class="tab-content">
-            <div class="card">
-                <div class="card-header">⚠️ 風險評估</div>
-                <p style="margin-bottom: 15px; font-size: 13px; color: #666;">評估投資組合風險等級、波動率、回撤，獲取對沖建議。</p>
-            </div>
-
-            <div class="card">
-                <div class="card-header">🎚️ 風險等級評分</div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
-                    <div class="form-group">
-                        <label class="form-label">組合風險等級 (1-10):</label>
-                        <input type="range" id="riskScore" class="form-input" min="1" max="10" value="5" oninput="app.risk.updateRiskDisplay()">
-                        <div style="margin-top: 8px; font-size: 16px; font-weight: 600; color: #667eea;" id="riskScoreDisplay">5/10 - 中等風險</div>
-                    </div>
-                </div>
-                <button class="btn btn-primary" onclick="app.risk.calculateRisk()">📊 計算風險指數</button>
-            </div>
-
-            <div class="card">
-                <div class="card-header">📉 波動率與回撤指標</div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                    <div style="background: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #f39c12;">
-                        <div style="font-size: 12px; color: #666;">年化波動率</div>
-                        <div style="font-size: 18px; font-weight: 600; color: #d68910;" id="volatilityRate">15.2%</div>
-                    </div>
-                    <div style="background: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid #f44336;">
-                        <div style="font-size: 12px; color: #666;">最大回撤</div>
-                        <div style="font-size: 18px; font-weight: 600; color: #c62828;" id="maxDrawdown">-18.5%</div>
-                    </div>
-                    <div style="background: #f3e5f5; padding: 15px; border-radius: 5px; border-left: 4px solid #9c27b0;">
-                        <div style="font-size: 12px; color: #666;">夏普比率</div>
-                        <div style="font-size: 18px; font-weight: 600; color: #6a1b9a;" id="sharpeRatio">1.24</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">🛡️ 對沖建議</div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px solid #4caf50;">
-                        <div style="font-weight: 600; color: #2e7d32; margin-bottom: 8px;">💰 黃金 (Gold)</div>
-                        <div style="font-size: 12px; color: #666;">建議配置: 5-10%</div>
-                        <div style="font-size: 11px; color: #999; margin-top: 5px;">通脹對沖，風險分散</div>
-                    </div>
-                    <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px solid #4caf50;">
-                        <div style="font-weight: 600; color: #2e7d32; margin-bottom: 8px;">📊 國債 (Bonds)</div>
-                        <div style="font-size: 12px; color: #666;">建議配置: 10-20%</div>
-                        <div style="font-size: 11px; color: #999; margin-top: 5px;">利率風險保護</div>
-                    </div>
-                    <div style="background: #ffebee; padding: 15px; border-radius: 8px; border: 1px solid #f44336;">
-                        <div style="font-weight: 600; color: #c62828; margin-bottom: 8px;">⚠️ 當前風險警告</div>
-                        <div style="font-size: 12px; color: #666;">科技股集中風險</div>
-                        <div style="font-size: 11px; color: #999; margin-top: 5px;">建議分散投資</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Cash Flow Tab -->
-        <div id="cashflow" class="tab-content">
-            <div class="card">
-                <div class="card-header">💵 現金流計算</div>
-                <p style="margin-bottom: 15px; font-size: 13px; color: #666;">計算被動收入、生活方式等價、高收益資產推薦。</p>
-            </div>
-
-            <div class="card">
-                <div class="card-header">📊 被動收入計算器</div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
-                    <div class="form-group">
-                        <label class="form-label">年化收入 (HKD):</label>
-                        <input type="number" id="annualIncome" class="form-input" placeholder="500000" step="10000">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">平均收益率 (%):</label>
-                        <input type="number" id="yieldRate" class="form-input" placeholder="10" min="0" max="100" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">稅率 (%):</label>
-                        <input type="number" id="taxRate2" class="form-input" placeholder="15" min="0" max="100" step="0.1">
-                    </div>
-                </div>
-                <button class="btn btn-info" onclick="app.cashflow.calculateIncome()">🧮 計算被動收入</button>
-            </div>
-
-            <div class="card">
-                <div class="card-header">💰 被動收入結果</div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
-                    <div style="background: #e3f2fd; padding: 15px; border-radius: 5px; border-left: 4px solid #2196f3;">
-                        <div style="font-size: 12px; color: #666;">年度被動收入</div>
-                        <div style="font-size: 18px; font-weight: 600; color: #1565c0;" id="yearlyPassiveIncome">$0.00</div>
-                    </div>
-                    <div style="background: #e3f2fd; padding: 15px; border-radius: 5px; border-left: 4px solid #2196f3;">
-                        <div style="font-size: 12px; color: #666;">月度被動收入</div>
-                        <div style="font-size: 18px; font-weight: 600; color: #1565c0;" id="monthlyPassiveIncome">$0.00</div>
-                    </div>
-                    <div style="background: #e8f5e9; padding: 15px; border-radius: 5px; border-left: 4px solid #4caf50;">
-                        <div style="font-size: 12px; color: #666;">稅後年收入</div>
-                        <div style="font-size: 18px; font-weight: 600; color: #4caf50;" id="afterTaxIncome">$0.00</div>
-                    </div>
-                    <div style="background: #e8f5e9; padding: 15px; border-radius: 5px; border-left: 4px solid #4caf50;">
-                        <div style="font-size: 12px; color: #666;">稅後月收入</div>
-                        <div style="font-size: 18px; font-weight: 600; color: #4caf50;" id="afterTaxMonthly">$0.00</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">☕ 生活方式等價轉換</div>
-                <p style="margin-bottom: 15px; font-size: 12px; color: #666;">將你的月度被動收入轉換為日常生活等價數量。</p>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;" id="lifestyleEquivalent">
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">📈 高收益資產推薦</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>代碼</th>
-                            <th>名稱</th>
-                            <th>年收益率</th>
-                            <th>分派頻率</th>
-                            <th>風險等級</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>QQQI</td>
-                            <td>iShares NASDAQ 100 Covered Call ETF</td>
-                            <td><span style="color: #48bb78; font-weight: 600;">12-14%</span></td>
-                            <td>月度 | Monthly</td>
-                            <td><span style="background: #fff3cd; padding: 4px 8px; border-radius: 3px; font-size: 11px;">中等 | Medium</span></td>
-                        </tr>
-                        <tr>
-                            <td>SPYI</td>
-                            <td>S&P 500 Covered Call ETF</td>
-                            <td><span style="color: #48bb78; font-weight: 600;">8-10%</span></td>
-                            <td>月度 | Monthly</td>
-                            <td><span style="background: #c6f6d5; padding: 4px 8px; border-radius: 3px; font-size: 11px; color: #22543d;">低 | Low</span></td>
-                        </tr>
-                        <tr>
-                            <td>JEPI</td>
-                            <td>JPMorgan Equity Premium Income</td>
-                            <td><span style="color: #48bb78; font-weight: 600;">8-10%</span></td>
-                            <td>月度 | Monthly</td>
-                            <td><span style="background: #c6f6d5; padding: 4px 8px; border-radius: 3px; font-size: 11px; color: #22543d;">低 | Low</span></td>
-                        </tr>
-                        <tr>
-                            <td>MO</td>
-                            <td>Altria Group Inc</td>
-                            <td><span style="color: #48bb78; font-weight: 600;">8-9%</span></td>
-                            <td>季度 | Quarterly</td>
-                            <td><span style="background: #fff3cd; padding: 4px 8px; border-radius: 3px; font-size: 11px;">中等 | Medium</span></td>
-                        </tr>
-                        <tr>
-                            <td>O</td>
-                            <td>Realty Income Corp</td>
-                            <td><span style="color: #48bb78; font-weight: 600;">3.5-4%</span></td>
-                            <td>月度 | Monthly</td>
-                            <td><span style="background: #c6f6d5; padding: 4px 8px; border-radius: 3px; font-size: 11px; color: #22543d;">低 | Low</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Derivatives Tab -->
-        <div id="derivatives" class="tab-content">
-            <div class="card">
-                <div class="card-header">📉 衍生品策略</div>
-                <p style="margin-bottom: 15px; font-size: 13px; color: #666;">計算賣出看跌期權、保護性買權成本、期權收益與保證金需求。</p>
-            </div>
-
-            <div class="card">
-                <div class="card-header">📊 賣出看跌期權計算器</div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
-                    <div class="form-group">
-                        <label class="form-label">執行價 (Strike Price):</label>
-                        <input type="number" id="strikePrice" class="form-input" placeholder="100.00" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">期權費 (Premium):</label>
-                        <input type="number" id="premium" class="form-input" placeholder="5.00" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">合約張數:</label>
-                        <input type="number" id="contracts" class="form-input" placeholder="10" step="1">
-                    </div>
-                </div>
-                <button class="btn btn-info" onclick="app.derivatives.calculatePutOption()">🧮 計算賣權收益</button>
-            </div>
-
-            <div class="card">
-                <div class="card-header">💰 賣出看跌期權結果</div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                    <div style="background: #e8f5e9; padding: 15px; border-radius: 5px; border-left: 4px solid #4caf50;">
-                        <div style="font-size: 12px; color: #666;">期權收益</div>
-                        <div style="font-size: 18px; font-weight: 600; color: #4caf50;" id="putIncome">$0.00</div>
-                    </div>
-                    <div style="background: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #f39c12;">
-                        <div style="font-size: 12px; color: #666;">保證金需求 (20%)</div>
-                        <div style="font-size: 18px; font-weight: 600; color: #d68910;" id="marginRequired">$0.00</div>
-                    </div>
-                    <div style="background: #f3e5f5; padding: 15px; border-radius: 5px; border-left: 4px solid #9c27b0;">
-                        <div style="font-size: 12px; color: #666;">年化收益率 (月化)</div>
-                        <div style="font-size: 18px; font-weight: 600; color: #6a1b9a;" id="annualizedReturn">0.00%</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">🛡️ 保護性買權計算</div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
-                    <div class="form-group">
-                        <label class="form-label">股票現價:</label>
-                        <input type="number" id="stockPrice2" class="form-input" placeholder="100.00" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">買權執行價:</label>
-                        <input type="number" id="callStrike" class="form-input" placeholder="110.00" step="0.01">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">買權費用:</label>
-                        <input type="number" id="callPremium" class="form-input" placeholder="3.00" step="0.01">
-                    </div>
-                </div>
-                <button class="btn btn-info" onclick="app.derivatives.calculateProtectiveCall()">🧮 計算保護成本</button>
-            </div>
-
-            <div class="card">
-                <div class="card-header">📈 保護性買權結果</div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                    <div style="background: #e3f2fd; padding: 15px; border-radius: 5px; border-left: 4px solid #2196f3;">
-                        <div style="font-size: 12px; color: #666;">買權成本</div>
-                        <div style="font-size: 18px; font-weight: 600; color: #1565c0;" id="callCost">$0.00</div>
-                    </div>
-                    <div style="background: #e8f5e9; padding: 15px; border-radius: 5px; border-left: 4px solid #4caf50;">
-                        <div style="font-size: 12px; color: #666;">最大利潤</div>
-                        <div style="font-size: 18px; font-weight: 600; color: #4caf50;" id="maxProfit">$0.00</div>
-                    </div>
-                    <div style="background: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid #f44336;">
-                        <div style="font-size: 12px; color: #666;">最大損失</div>
-                        <div style="font-size: 18px; font-weight: 600; color: #c62828;" id="maxLoss">$0.00</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">⚠️ 衍生品風險警告</div>
-                <div style="background: #ffebee; border-left: 4px solid #f44336; padding: 15px; border-radius: 5px;">
-                    <strong style="color: #c62828;">⚠️ 重要風險提示：</strong>
-                    <ul style="margin-top: 10px; margin-left: 20px; font-size: 13px; color: #666;">
-                        <li>期權交易涉及高風險，可能導致重大損失</li>
-                        <li>保證金要求可能導致追加保證金要求</li>
-                        <li>市場波動可能導致快速虧損</li>
-                        <li>建議咨詢專業顧問後進行交易</li>
-                        <li>過去表現不代表未來結果</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- API Config Tab -->
-        <div id="api-config" class="tab-content">
-            <div class="card">
-                <div class="card-header">🔑 API 提供商配置</div>
-                
-                <div style="margin-bottom: 20px; padding: 15px; background: white; border: 1px solid #e2e8f0; border-radius: 5px;">
-                    <div style="margin-bottom: 10px;">
-                        <span class="status-light" id="avStatus"></span>
-                        <strong>Alpha Vantage</strong>
-                        <span id="avStatusText" style="font-size: 12px; color: #999; margin-left: 10px;">未配置</span>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">API Key:</label>
-                        <input type="password" id="avApiKey" class="form-input" placeholder="輸入 API Key">
-                    </div>
-                    <button class="btn btn-primary" onclick="app.saveAPIConfig('AlphaVantage')">💾 保存</button>
-                </div>
-                
-                <div style="margin-bottom: 20px; padding: 15px; background: white; border: 1px solid #e2e8f0; border-radius: 5px;">
-                    <div style="margin-bottom: 10px;">
-                        <span class="status-light" id="fmpStatus"></span>
-                        <strong>Financial Modeling Prep</strong>
-                        <span id="fmpStatusText" style="font-size: 12px; color: #999; margin-left: 10px;">未配置</span>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">API Key:</label>
-                        <input type="password" id="fmpApiKey" class="form-input" placeholder="輸入 API Key">
-                    </div>
-                    <button class="btn btn-primary" onclick="app.saveAPIConfig('FinancialModelingPrep')">💾 保存</button>
-                </div>
-                
-                <div style="margin-bottom: 20px; padding: 15px; background: white; border: 1px solid #e2e8f0; border-radius: 5px;">
-                    <div style="margin-bottom: 10px;">
-                        <span class="status-light" id="polygonStatus"></span>
-                        <strong>Polygon.io</strong>
-                        <span id="polygonStatusText" style="font-size: 12px; color: #999; margin-left: 10px;">未配置</span>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">API Key:</label>
-                        <input type="password" id="polygonApiKey" class="form-input" placeholder="輸入 API Key">
-                    </div>
-                    <button class="btn btn-primary" onclick="app.saveAPIConfig('Polygon')">💾 保存</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Settings Tab -->
-        <div id="settings" class="tab-content">
-            <div class="card">
-                <div class="card-header">⚙️ 系統設置</div>
-                
-                <div class="form-group">
-                    <label class="form-label">刷新頻率:</label>
-                    <select id="refreshMode" class="form-input">
-                        <option value="5min">5 分鐘</option>
-                        <option value="15min">15 分鐘</option>
-                        <option value="30min">30 分鐘</option>
-                        <option value="1hour">1 小時</option>
-                        <option value="manual">手動</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">稅率 (%):</label>
-                    <input type="number" id="systemTaxRate" class="form-input" placeholder="15" min="0" max="100" step="0.1">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">無風險利率 (%):</label>
-                    <input type="number" id="riskFreeRate" class="form-input" placeholder="2.5" min="0" max="20" step="0.1">
-                </div>
-                
-                <button class="btn btn-primary" onclick="app.saveSystemSettings()">💾 保存設置</button>
-            </div>
-
-            <div class="card">
-                <div class="card-header">☁️ 雲端同步</div>
-                <div style="background: #e6fffa; border-left: 4px solid #38b2ac; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
-                    <p style="margin: 0; font-size: 12px;"><strong>用戶ID:</strong> <code id="userIdDisplay" style="background: #f0f0f0; padding: 3px 6px; border-radius: 3px;">Loading...</code></p>
-                    <p style="margin: 5px 0 0; font-size: 12px;"><strong>同步狀態:</strong> <span id="cloudSyncStatus" style="color: #38b2ac; font-weight: 600;">連接中...</span></p>
-                </div>
-                <button class="btn btn-success" onclick="app.manualSync()">🔄 手動同步</button>
-            </div>
-        </div>
+<!-- Auth Page -->
+<div id="authPage" class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-title">
+      <div class="auth-logo">₿</div>
+      <div class="auth-title-text">金融系統儀表板 Pro v4.0</div>
+    </div>
+    <div class="auth-subtitle">Supabase 雲端登入 · 多設備同步</div>
+    <div class="auth-badge">
+      <span class="auth-cloud-dot"></span>
+      雲端認證啟用
     </div>
 
-    <script>
-        const app = {
-            supabaseClient: null,
-            userId: null,
-            
-            async init() {
-                const SUPABASE_URL = 'https://tfmoaywkdgqfklibnqln.supabase.co'
-                const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmbW9heXdrZGdxZmtsaWJucWxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjA0MzEsImV4cCI6MjA4MzQzNjQzMX0.vtaIE2blCfOOzFnj8HiTeX5Ensaxd-_U708JjAynFc0'
-                
-                try {
-                    if (window.supabase) {
-                        this.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
-                    }
-                } catch (error) {
-                    console.error('Supabase 初始化失敗:', error)
-                }
-                
-                this.userId = localStorage.getItem('userId')
-                if (!this.userId) {
-                    this.userId = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now()
-                    localStorage.setItem('userId', this.userId)
-                }
-                
-                document.getElementById('userIdDisplay').textContent = this.userId
-                
-                this.loadLocalSettings()
-                await this.loadFromCloud()
-                this.updateSyncStatus()
-                
-                setInterval(() => this.loadFromCloud(), 30000)
-            },
-            
-            showToast(message, type = 'info') {
-                const toast = document.createElement('div')
-                toast.className = `toast ${type}`
-                toast.textContent = message
-                document.body.appendChild(toast)
-                
-                setTimeout(() => {
-                    toast.style.animation = 'slideOut 0.3s ease-in'
-                    setTimeout(() => toast.remove(), 300)
-                }, 4000)
-            },
-            
-            switchTab(event, tabName) {
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'))
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'))
-                document.getElementById(tabName).classList.add('active')
-                event.target.classList.add('active')
-            },
-            
-            async saveAPIConfig(provider) {
-                const configMap = {
-                    'AlphaVantage': { key: 'avApiKey', status: 'avStatus', text: 'avStatusText' },
-                    'FinancialModelingPrep': { key: 'fmpApiKey', status: 'fmpStatus', text: 'fmpStatusText' },
-                    'Polygon': { key: 'polygonApiKey', status: 'polygonStatus', text: 'polygonStatusText' }
-                }
-                
-                const config = configMap[provider]
-                if (!config) return
-                
-                const apiKey = document.getElementById(config.key).value.trim()
-                if (!apiKey) {
-                    this.showToast('❌ API Key 不能為空', 'error')
-                    return
-                }
-                
-                try {
-                    let configData = JSON.parse(localStorage.getItem('APIConfig') || '{}')
-                    if (!configData.providers) configData.providers = {}
-                    
-                    configData.providers[provider] = { apiKey, enabled: true, savedTime: new Date().toISOString() }
-                    localStorage.setItem('APIConfig', JSON.stringify(configData))
-                    await this.saveToCloud('APIConfig', configData)
-                    
-                    document.getElementById(config.status).className = 'status-light connected'
-                    document.getElementById(config.text).textContent = '✓ 已連接'
-                    this.showToast(`✓ ${provider} 已保存`, 'success')
-                } catch (error) {
-                    this.showToast('❌ 保存失敗', 'error')
-                }
-            },
-            
-            async saveSystemSettings() {
-                try {
-                    const refreshMode = document.getElementById('refreshMode').value
-                    const taxRate = parseFloat(document.getElementById('systemTaxRate').value)
-                    const riskFreeRate = parseFloat(document.getElementById('riskFreeRate').value)
-                    
-                    const settings = { refreshMode, taxRate, riskFreeRate, savedTime: new Date().toISOString() }
-                    localStorage.setItem('SystemSettings', JSON.stringify(settings))
-                    await this.saveToCloud('SystemSettings', settings)
-                    
-                    this.showToast('✓ 設置已保存', 'success')
-                } catch (error) {
-                    this.showToast('❌ 保存失敗', 'error')
-                }
-            },
-            
-            loadLocalSettings() {
-                const settings = JSON.parse(localStorage.getItem('SystemSettings') || '{}')
-                if (settings.refreshMode) document.getElementById('refreshMode').value = settings.refreshMode
-                if (settings.taxRate) document.getElementById('systemTaxRate').value = settings.taxRate
-                if (settings.riskFreeRate) document.getElementById('riskFreeRate').value = settings.riskFreeRate
-            },
-            
-            async saveToCloud(dataType, data) {
-                if (!this.supabaseClient) return
-                try {
-                    const { error } = await this.supabaseClient.from('user_data').upsert({
-                        user_id: this.userId,
-                        [dataType.toLowerCase()]: data,
-                        updated_at: new Date().toISOString()
-                    })
-                    if (error) throw error
-                    this.updateSyncStatus()
-                } catch (error) {
-                    console.error('雲端保存失敗:', error)
-                }
-            },
-            
-            async loadFromCloud() {
-                if (!this.supabaseClient) return
-                try {
-                    const { data, error } = await this.supabaseClient.from('user_data').select('*').eq('user_id', this.userId).single()
-                    if (error && error.code !== 'PGRST116') throw error
-                    if (data) {
-                        if (data.apiconfig) localStorage.setItem('APIConfig', JSON.stringify(data.apiconfig))
-                        if (data.systemsettings) localStorage.setItem('SystemSettings', JSON.stringify(data.systemsettings))
-                        this.loadLocalSettings()
-                    }
-                } catch (error) {
-                    console.error('雲端載入失敗:', error)
-                }
-            },
-            
-            async manualSync() {
-                this.showToast('🔄 正在同步...', 'info')
-                await this.loadFromCloud()
-                this.updateSyncStatus()
-            },
-            
-            updateSyncStatus() {
-                document.getElementById('cloudSyncStatus').textContent = this.supabaseClient ? '✓ 已連接' : '❌ 未連接'
-            },
+    <div id="authMessage" class="auth-msg hidden"></div>
 
-            // ETF 模組
-            etf: {
-                allETFs: [
-                    { code: 'QQQ', name: 'Invesco QQQ Trust', type: '科技', cagr5: '18-22%', cagr10: '17.5-19%', desc: 'NASDAQ-100' },
-                    { code: 'VGT', name: 'Vanguard Information Technology', type: '科技', cagr5: '16-20%', cagr10: '16-18%', desc: 'IT Sector' },
-                    { code: 'SMH', name: 'VanEck Semiconductor ETF', type: '半導體', cagr5: '15-25%', cagr10: '12-18%', desc: 'Semiconductors' },
-                    { code: 'VOO', name: 'Vanguard S&P 500 ETF', type: '寬基', cagr5: '12-16%', cagr10: '11-15%', desc: 'S&P 500' },
-                    { code: 'XLK', name: 'Technology Select Sector SPDR', type: '科技', cagr5: '15-19%', cagr10: '15-17%', desc: 'Tech Sector' },
-                    { code: 'ARKK', name: 'ARK Innovation ETF', type: '創新', cagr5: '8-15%', cagr10: '10-14%', desc: 'Innovation' }
-                ],
-                watchlist: JSON.parse(localStorage.getItem('ETFWatchlist') || '[]'),
-                
-                init() {
-                    this.renderTable(this.allETFs)
-                    this.renderWatchlist()
-                },
-                
-                renderTable(etfs) {
-                    const tbody = document.getElementById('etfTableBody')
-                    tbody.innerHTML = etfs.map(etf => `
-                        <tr>
-                            <td><strong>${etf.code}</strong></td>
-                            <td>${etf.name}</td>
-                            <td>${etf.type}</td>
-                            <td style="color: #2196f3; text-align: center;">${etf.cagr5}</td>
-                            <td style="color: #f39c12; text-align: center;">${etf.cagr10}</td>
-                            <td>${etf.desc}</td>
-                            <td style="text-align: center;">
-                                <button class="btn btn-success" onclick="app.etf.addToWatchlist('${etf.code}')" style="margin: 0; padding: 6px 10px; font-size: 12px;">➕</button>
-                            </td>
-                        </tr>
-                    `).join('')
-                },
-                
-                searchETF() {
-                    const input = document.getElementById('etfSearchInput').value.toUpperCase()
-                    const filtered = input ? this.allETFs.filter(e => e.code.includes(input) || e.name.toUpperCase().includes(input)) : this.allETFs
-                    this.renderTable(filtered)
-                },
-                
-                quickSearch(code) {
-                    document.getElementById('etfSearchInput').value = code
-                    this.searchETF()
-                },
-                
-                addToWatchlist(code) {
-                    if (this.watchlist.find(w => w.code === code)) {
-                        app.showToast(`${code} 已在清單中`, 'warning')
-                        return
-                    }
-                    const etf = this.allETFs.find(e => e.code === code)
-                    if (etf) {
-                        this.watchlist.push({ ...etf, addedTime: new Date().toISOString() })
-                        this.saveWatchlist()
-                        this.renderWatchlist()
-                        app.showToast(`✓ ${code} 已加入監控清單`, 'success')
-                    }
-                },
-                
-                removeFromWatchlist(code) {
-                    this.watchlist = this.watchlist.filter(w => w.code !== code)
-                    this.saveWatchlist()
-                    this.renderWatchlist()
-                    app.showToast(`✓ ${code} 已移除`, 'info')
-                },
-                
-                renderWatchlist() {
-                    const container = document.getElementById('watchlistContainer')
-                    const empty = document.getElementById('emptyWatchlist')
-                    
-                    if (this.watchlist.length === 0) {
-                        container.style.display = 'none'
-                        empty.style.display = 'block'
-                        return
-                    }
-                    
-                    container.style.display = 'grid'
-                    empty.style.display = 'none'
-                    container.innerHTML = this.watchlist.map(etf => `
-                        <div style="background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 15px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                <div style="font-size: 16px; font-weight: 600; color: #667eea;">${etf.code}</div>
-                                <button class="btn btn-danger" onclick="app.etf.removeFromWatchlist('${etf.code}')" style="margin: 0; padding: 4px 6px; font-size: 11px;">✕</button>
-                            </div>
-                            <div style="font-size: 12px; color: #666; margin-bottom: 10px;">${etf.name}</div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
-                                <div style="background: white; padding: 8px; border-radius: 4px;">5Y: <strong style="color: #2196f3;">${etf.cagr5}</strong></div>
-                                <div style="background: white; padding: 8px; border-radius: 4px;">10Y: <strong style="color: #f39c12;">${etf.cagr10}</strong></div>
-                            </div>
-                        </div>
-                    `).join('')
-                },
-                
-                saveWatchlist() {
-                    localStorage.setItem('ETFWatchlist', JSON.stringify(this.watchlist))
-                    app.saveToCloud('ETFWatchlist', this.watchlist)
-                }
-            },
+    <form id="loginForm">
+      <div class="auth-group">
+        <label for="loginEmail">電郵地址</label>
+        <input id="loginEmail" type="email" class="auth-input" required />
+      </div>
+      <div class="auth-group">
+        <label for="loginPassword">密碼</label>
+        <input id="loginPassword" type="password" class="auth-input" required />
+      </div>
+      <button id="loginBtn" type="submit" class="auth-btn auth-btn-primary">登入</button>
+    </form>
 
-            // Portfolio 模組
-            portfolio: {
-                holdings: JSON.parse(localStorage.getItem('PortfolioHoldings') || '[]'),
-                
-                addHolding() {
-                    const ticker = document.getElementById('portfolioTicker').value.trim().toUpperCase()
-                    const shares = parseFloat(document.getElementById('portfolioShares').value)
-                    const cost = parseFloat(document.getElementById('portfolioCost').value)
-                    const price = parseFloat(document.getElementById('portfolioPrice').value)
-                    
-                    if (!ticker || isNaN(shares) || isNaN(cost) || isNaN(price)) {
-                        app.showToast('❌ 請填寫所有欄位', 'error')
-                        return
-                    }
-                    
-                    this.holdings.push({
-                        ticker, shares, cost, price,
-                        addedTime: new Date().toISOString()
-                    })
-                    
-                    this.savePortfolio()
-                    this.renderTable()
-                    this.updateStats()
-                    
-                    document.getElementById('portfolioTicker').value = ''
-                    document.getElementById('portfolioShares').value = ''
-                    document.getElementById('portfolioCost').value = ''
-                    document.getElementById('portfolioPrice').value = ''
-                    
-                    app.showToast('✓ 持倉已新增', 'success')
-                },
-                
-                removeHolding(ticker) {
-                    this.holdings = this.holdings.filter(h => h.ticker !== ticker)
-                    this.savePortfolio()
-                    this.renderTable()
-                    this.updateStats()
-                    app.showToast(`✓ ${ticker} 已移除`, 'info')
-                },
-                
-                renderTable() {
-                    const tbody = document.getElementById('portfolioTableBody')
-                    tbody.innerHTML = this.holdings.map(h => {
-                        const totalCost = h.shares * h.cost
-                        const currentValue = h.shares * h.price
-                        const gain = currentValue - totalCost
-                        const returnPct = (gain / totalCost * 100).toFixed(2)
-                        
-                        return `
-                            <tr>
-                                <td><strong>${h.ticker}</strong></td>
-                                <td>${h.shares.toFixed(2)}</td>
-                                <td>$${h.cost.toFixed(2)}</td>
-                                <td>$${totalCost.toFixed(2)}</td>
-                                <td>$${h.price.toFixed(2)}</td>
-                                <td>$${currentValue.toFixed(2)}</td>
-                                <td style="color: ${gain >= 0 ? '#48bb78' : '#f56565'};"><strong>${gain >= 0 ? '+' : ''}$${gain.toFixed(2)}</strong></td>
-                                <td style="color: ${returnPct >= 0 ? '#48bb78' : '#f56565'};"><strong>${returnPct >= 0 ? '+' : ''}${returnPct}%</strong></td>
-                                <td><button class="btn btn-danger" onclick="app.portfolio.removeHolding('${h.ticker}')" style="margin: 0; padding: 4px 8px; font-size: 11px;">🗑️</button></td>
-                            </tr>
-                        `
-                    }).join('')
-                },
-                
-                updateStats() {
-                    let totalCost = 0, totalValue = 0
-                    this.holdings.forEach(h => {
-                        totalCost += h.shares * h.cost
-                        totalValue += h.shares * h.price
-                    })
-                    
-                    const gain = totalValue - totalCost
-                    const roi = totalCost > 0 ? (gain / totalCost * 100).toFixed(2) : 0
-                    
-                    document.getElementById('portfolioTotalCost').textContent = `$${totalCost.toFixed(2)}`
-                    document.getElementById('portfolioTotalValue').textContent = `$${totalValue.toFixed(2)}`
-                    document.getElementById('portfolioTotalGain').textContent = `${gain >= 0 ? '+' : ''}$${gain.toFixed(2)}`
-                    document.getElementById('portfolioTotalROI').textContent = `${roi >= 0 ? '+' : ''}${roi}%`
-                    document.getElementById('holdingCount').textContent = this.holdings.length
-                    document.getElementById('totalAssets').textContent = `$${totalValue.toFixed(2)}`
-                    document.getElementById('totalGain').textContent = `${roi >= 0 ? '+' : ''}${roi}%`
-                },
-                
-                savePortfolio() {
-                    localStorage.setItem('PortfolioHoldings', JSON.stringify(this.holdings))
-                    app.saveToCloud('PortfolioHoldings', this.holdings)
-                },
-                
-                init() {
-                    this.renderTable()
-                    this.updateStats()
-                }
-            },
+    <form id="signupForm" class="hidden">
+      <div class="auth-group">
+        <label for="signupEmail">電郵地址</label>
+        <input id="signupEmail" type="email" class="auth-input" required />
+      </div>
+      <div class="auth-group">
+        <label for="signupPassword">密碼（至少 6 位）</label>
+        <input id="signupPassword" type="password" class="auth-input" minlength="6" required />
+      </div>
+      <div class="auth-group">
+        <label for="signupPasswordConfirm">確認密碼</label>
+        <input id="signupPasswordConfirm" type="password" class="auth-input" minlength="6" required />
+      </div>
+      <button id="signupBtn" type="submit" class="auth-btn auth-btn-primary">註冊</button>
+    </form>
 
-            // Risk Assessment 模組
-            risk: {
-                updateRiskDisplay() {
-                    const score = document.getElementById('riskScore').value
-                    let level = '低風險'
-                    if (score > 6) level = '中高風險'
-                    if (score > 8) level = '高風險'
-                    document.getElementById('riskScoreDisplay').textContent = `${score}/10 - ${level}`
-                },
-                
-                calculateRisk() {
-                    this.updateRiskDisplay()
-                    app.showToast('✓ 風險評分已更新', 'success')
-                }
-            },
+    <div class="auth-toggle">
+      <span id="toggleText">還沒有帳號？</span>
+      <a id="toggleLink">立即註冊</a>
+    </div>
+  </div>
+</div>
 
-            // Cash Flow 模組
-            cashflow: {
-                calculateIncome() {
-                    const annual = parseFloat(document.getElementById('annualIncome').value)
-                    const yield_rate = parseFloat(document.getElementById('yieldRate').value)
-                    const tax = parseFloat(document.getElementById('taxRate2').value)
-                    
-                    if (isNaN(annual) || isNaN(yield_rate) || isNaN(tax)) {
-                        app.showToast('❌ 請填寫所有欄位', 'error')
-                        return
-                    }
-                    
-                    const yearlyIncome = annual * (yield_rate / 100)
-                    const monthlyIncome = yearlyIncome / 12
-                    const afterTaxYearly = yearlyIncome * (1 - tax / 100)
-                    const afterTaxMonthly = afterTaxYearly / 12
-                    
-                    document.getElementById('yearlyPassiveIncome').textContent = `$${yearlyIncome.toFixed(2)}`
-                    document.getElementById('monthlyPassiveIncome').textContent = `$${monthlyIncome.toFixed(2)}`
-                    document.getElementById('afterTaxIncome').textContent = `$${afterTaxYearly.toFixed(2)}`
-                    document.getElementById('afterTaxMonthly').textContent = `$${afterTaxMonthly.toFixed(2)}`
-                    document.getElementById('monthlyIncome').textContent = `$${afterTaxMonthly.toFixed(2)}`
-                    
-                    this.renderLifestyleEquivalent(monthlyIncome)
-                    app.showToast('✓ 被動收入已計算', 'success')
-                },
-                
-                renderLifestyleEquivalent(monthlyIncome) {
-                    const lifestyles = [
-                        { icon: '☕', name: '咖啡杯', price: 8 },
-                        { icon: '🎬', name: '電影票', price: 15 },
-                        { icon: '📺', name: 'Netflix 月費', price: 15 },
-                        { icon: '🍕', name: '披薩', price: 12 },
-                        { icon: '🚌', name: '巴士車票', price: 3 },
-                        { icon: '🏖️', name: '度假天數 (日均 $200)', price: 200 }
-                    ]
-                    
-                    const container = document.getElementById('lifestyleEquivalent')
-                    container.innerHTML = lifestyles.map(ls => {
-                        const count = Math.floor(monthlyIncome / ls.price)
-                        return `
-                            <div style="background: #f9f9f9; padding: 12px; border-radius: 8px; border-left: 3px solid #667eea;">
-                                <div style="font-size: 16px;">${ls.icon}</div>
-                                <div style="font-size: 12px; color: #666;">${ls.name}</div>
-                                <div style="font-size: 18px; font-weight: 600; color: #667eea; margin-top: 5px;">${count}</div>
-                            </div>
-                        `
-                    }).join('')
-                }
-            },
+<!-- Dashboard Page (v2.4 UI) -->
+<div id="dashboardPage" class="app" style="display:none;">
+  <header class="top-bar">
+    <div class="title-block">
+      <div class="logo">₿</div>
+      <div>
+        <div class="title-main">金融系統儀表板 Pro v2.4</div>
+        <div class="title-sub">雲端版 · 6 大功能模組 · 全設備同步 · 實時更新</div>
+      </div>
+      <div class="badge">
+        <span class="cloud-dot"></span>
+        雲端同步啟用
+      </div>
+    </div>
 
-            // Derivatives 模組
-            derivatives: {
-                calculatePutOption() {
-                    const strike = parseFloat(document.getElementById('strikePrice').value)
-                    const premium = parseFloat(document.getElementById('premium').value)
-                    const contracts = parseInt(document.getElementById('contracts').value)
-                    
-                    if (isNaN(strike) || isNaN(premium) || isNaN(contracts)) {
-                        app.showToast('❌ 請填寫所有欄位', 'error')
-                        return
-                    }
-                    
-                    const income = premium * 100 * contracts
-                    const margin = strike * 100 * contracts * 0.2
-                    const annReturn = (premium / strike * 100 * 12).toFixed(2)
-                    
-                    document.getElementById('putIncome').textContent = `$${income.toFixed(2)}`
-                    document.getElementById('marginRequired').textContent = `$${margin.toFixed(2)}`
-                    document.getElementById('annualizedReturn').textContent = `${annReturn}%`
-                    
-                    app.showToast('✓ 賣權已計算', 'success')
-                },
-                
-                calculateProtectiveCall() {
-                    const stock = parseFloat(document.getElementById('stockPrice2').value)
-                    const callStrike = parseFloat(document.getElementById('callStrike').value)
-                    const callPremium = parseFloat(document.getElementById('callPremium').value)
-                    
-                    if (isNaN(stock) || isNaN(callStrike) || isNaN(callPremium)) {
-                        app.showToast('❌ 請填寫所有欄位', 'error')
-                        return
-                    }
-                    
-                    const cost = callPremium * 100
-                    const maxProfit = (callStrike - stock + callPremium) * 100
-                    const maxLoss = (stock - callPremium) * 100
-                    
-                    document.getElementById('callCost').textContent = `$${cost.toFixed(2)}`
-                    document.getElementById('maxProfit').textContent = `$${maxProfit.toFixed(2)}`
-                    document.getElementById('maxLoss').textContent = `$${maxLoss.toFixed(2)}`
-                    
-                    app.showToast('✓ 保護性買權已計算', 'success')
-                }
-            }
+    <div class="user-block">
+      <div class="sync-status">
+        <span>用戶 Email：<span id="userEmail"></span></span>
+        <span class="status">
+          <span class="status-dot"></span>
+          已連接 · 手動同步
+        </span>
+        <button type="button" id="logoutBtn" class="btn btn-outline" style="margin-top:4px;">登出</button>
+      </div>
+      <div class="avatar"></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div>
+        <div class="nav-group-label">主控台</div>
+        <ul class="nav-list">
+          <li class="nav-item active">
+            <span class="nav-item-icon">📊</span>
+            <span class="label">儀表板</span>
+          </li>
+          <li class="nav-item">
+            <span class="nav-item-icon">📈</span>
+            <span class="label">ETF 追蹤</span>
+          </li>
+          <li class="nav-item">
+            <span class="nav-item-icon">💰</span>
+            <span class="label">投資組合</span>
+          </li>
+          <li class="nav-item">
+            <span class="nav-item-icon">⚠️</span>
+            <span class="label">風險評估</span>
+          </li>
+          <li class="nav-item">
+            <span class="nav-item-icon">💵</span>
+            <span class="label">現金流 & 被動收入</span>
+          </li>
+          <li class="nav-item">
+            <span class="nav-item-icon">📉</span>
+            <span class="label">衍生品工具</span>
+          </li>
+        </ul>
+      </div>
+      <div>
+        <div class="nav-group-label">系統</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <span class="nav-item-icon">🔑</span>
+            <span class="label">API 配置</span>
+          </li>
+          <li class="nav-item">
+            <span class="nav-item-icon">⚙️</span>
+            <span class="label">系統設置</span>
+          </li>
+        </ul>
+      </div>
+      <div class="nav-foot-note">
+        v2.4 · 最近同步：手動 · 香港時區
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="top-row">
+        <div>
+          <div class="connection-pill">
+            <span class="connection-dot"></span>
+            實時資料串流 · 連接中...
+          </div>
+          <div class="module-tags">
+            <span class="module-tag">儀表板</span>
+            <span class="module-tag">ETF 追蹤</span>
+            <span class="module-tag">投資組合</span>
+            <span class="module-tag">風險評估</span>
+            <span class="module-tag">現金流</span>
+            <span class="module-tag">衍生品</span>
+          </div>
+        </div>
+
+        <div class="control-row">
+  <div class="select">
+    <label for="refresh-interval">刷新頻率:</label>
+    <select id="refresh-interval">
+      <option value="5m">5 分鐘</option>
+      <option value="15m">15 分鐘</option>
+      <option value="30m">30 分鐘</option>
+      <option value="1h">1 小時</option>
+      <option value="manual" selected>手動</option>
+    </select>
+  </div>
+
+  <div class="input">
+    <label for="tax-rate">稅率 (%):</label>
+    <input id="tax-rate" type="number" value="30" min="0" max="100" step="0.1" />
+  </div>
+
+  <div class="input">
+    <label for="rf-rate">無風險利率 (%):</label>
+    <input id="rf-rate" type="number" value="2.5" min="0" max="20" step="0.1" />
+  </div>
+
+  <button id="btnSaveSettings" class="btn btn-primary">💾 保存設置</button>
+  <button id="btnManualSync" class="btn btn-outline">🔄 手動同步</button>
+  <button id="btnSaveSnapshot" class="btn btn-outline">📸 保存快照</button>
+</div>
+
+      </div>
+
+      <div class="grid">
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <span>📈 投資組合總覽</span>
+                <span class="pill-soft accent">多資產 · 全市場</span>
+              </div>
+              <div class="card-subtitle">
+                管理你的投資持倉，追蹤成本、現值、收益率與 ETF 表現。
+              </div>
+            </div>
+           <button id="btnAddHolding" class="btn btn-outline" style="font-size: 11px; padding-inline: 8px;">
+			➕ 新增持倉
+			</button>
+          </div>
+
+			<div class="card-body" style="margin-top:10px;">
+			<div class="placeholder" id="holdingsEmpty">
+				📌 還沒有任何持倉。按右上角「➕ 新增持倉」開始建立你的投資組合。
+			</div>
+			
+			<div id="holdingsWrap" style="display:none; overflow-x:auto;">
+				<table class="table">
+				<thead>
+					<tr>
+					<th>代碼</th>
+					<th>股數</th>
+					<th>買入價</th>
+					<th>現價</th>
+					<th>現值</th>
+					<th>收益</th>
+					<th>收益率</th>
+					<th>操作</th>
+					</tr>
+				</thead>
+				<tbody id="holdingsTbody"></tbody>
+				</table>
+			</div>
+			</div>
+
+
+          <div class="metric-row">
+            <div class="metric">
+              <div class="metric-label">
+                總資產
+                <span class="metric-pill">含現金 & 衍生品</span>
+              </div>
+              <div class="metric-value" id="totalAssets">HK$ 0</div>
+              <div class="metric-change up">
+                △ 0.00%（今日）
+              </div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">
+                已實現 / 未實現收益
+              </div>
+              <div class="metric-value" id="totalGain">HK$ 0</div>
+              <div class="metric-change muted">
+                已實現：0 · 未實現：0
+              </div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">
+                年化預期報酬
+              </div>
+              <div class="metric-value" id="expectedReturn">0.0%</div>
+              <div class="metric-change muted">
+                風險調整後：0.0%（Sharpe 0.00）
+              </div>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <p>📌 還沒有監控任何 <span class="muted">ETF</span>。你可以在「ETF 追蹤」模組中新增代碼以開始追蹤 5 年 / 10 年 CAGR 與分派紀錄。</p>
+            <div class="placeholder">
+              ETF 追蹤表（代碼 · 名稱 · 類型 · 5 年 CAGR · 10 年 CAGR · 描述 · 操作）可放在此區塊。  
+              目前資料為空，待你填入實際清單。
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">
+                <span>⚠️ 風險與現金流</span>
+                <span class="pill-soft">風險評估 · 被動收入 · 衍生品</span>
+              </div>
+              <div class="card-subtitle">
+                評估投資組合風險等級、波動率、回撤與被動收入覆蓋率。
+              </div>
+            </div>
+          </div>
+
+          <div class="metric-row">
+            <div class="metric">
+              <div class="metric-label">
+                組合風險等級
+              </div>
+              <div class="metric-value">N/A</div>
+              <div class="metric-change muted">
+                波動率：-- · 最大回撤：--
+              </div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">
+                預期月度被動收入
+              </div>
+              <div class="metric-value">HK$ 0</div>
+              <div class="metric-change up">
+                生活方式等價：0 杯咖啡 / 0 次外出晚餐
+              </div>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <p>將你的月度被動收入轉換為日常生活等價數量，並結合衍生品策略（賣出看跌期權、保護性買權）優化風險 / 報酬結構。</p>
+
+            <div class="placeholder" style="margin-bottom: 8px;">
+              衍生品計算模組可放置在此區：  
+              - 賣出看跌期權、保護性買權成本  
+              - 期權收益與保證金需求  
+              - 對沖建議與情境分析
+            </div>
+
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>代碼</th>
+                  <th>名稱</th>
+                  <th>年收益率</th>
+                  <th>分派頻率</th>
+                  <th>風險等級</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>QQQI</td>
+                  <td>iShares NASDAQ 100 Covered Call ETF</td>
+                  <td>12–14%</td>
+                  <td>月度</td>
+                  <td><span class="tag-risk-med">中等</span></td>
+                </tr>
+                <tr>
+                  <td>SPYI</td>
+                  <td>S&amp;P 500 Covered Call ETF</td>
+                  <td>8–10%</td>
+                  <td>月度</td>
+                  <td><span class="tag-risk-low">低</span></td>
+                </tr>
+                <tr>
+                  <td>JEPI</td>
+                  <td>JPMorgan Equity Premium Income</td>
+                  <td>8–10%</td>
+                  <td>月度</td>
+                  <td><span class="tag-risk-low">低</span></td>
+                </tr>
+                <tr>
+                  <td>MO</td>
+                  <td>Altria Group Inc</td>
+                  <td>8–9%</td>
+                  <td>季度</td>
+                  <td><span class="tag-risk-med">中等</span></td>
+                </tr>
+                <tr>
+                  <td>O</td>
+                  <td>Realty Income Corp</td>
+                  <td>3.5–4%</td>
+                  <td>月度</td>
+                  <td><span class="tag-risk-low">低</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+<!-- 圖表區 -->
+<div class="grid" style="margin-top:16px;">
+  <!-- 持倉餅圖 -->
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">
+          <span>🥧 持倉分佈</span>
+          <span class="pill-soft">按市值</span>
+        </div>
+        <div class="card-subtitle">各代碼佔總市值百分比</div>
+      </div>
+    </div>
+    <div class="card-body" style="position:relative; height:280px;">
+      <canvas id="chartPie"></canvas>
+    </div>
+  </section>
+
+  <!-- 總資產趨勢 -->
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">
+          <span>📈 總資產趨勢</span>
+          <span class="pill-soft">近 30 日</span>
+        </div>
+        <div class="card-subtitle">模擬數據（待接入真實歷史快照）</div>
+      </div>
+    </div>
+    <div class="card-body" style="position:relative; height:280px;">
+      <canvas id="chartLine"></canvas>
+    </div>
+  </section>
+</div>
+
+
+
+      <div class="footer-meta">
+        <div>
+          <span class="muted">系統狀態：</span>
+          <span>雲端同步已啟用 · API 未配置 · 風險引擎待初始化</span>
+        </div>
+        <div class="user-id-box" id="userIdBox">
+          user_id: -
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+		<div id="holdingModal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:99999; align-items:center; justify-content:center;">
+		<div style="width:92%; max-width:520px; background:#020617; border:1px solid #1f2937; border-radius:14px; padding:16px;">
+			<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+			<div id="holdingModalTitle" style="font-weight:600;">新增持倉</div>
+			<button id="btnCloseModal" class="btn btn-outline" type="button">✕</button>
+			</div>
+
+			<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+			<div>
+				<div style="font-size:12px; color:#9ca3af; margin-bottom:6px;">代碼（Ticker）</div>
+				<input id="mSymbol" class="auth-input" placeholder="AAPL" />
+			</div>
+			<div>
+				<div style="font-size:12px; color:#9ca3af; margin-bottom:6px;">股數</div>
+				<input id="mQty" class="auth-input" type="number" step="0.01" placeholder="10" />
+			</div>
+			<div>
+				<div style="font-size:12px; color:#9ca3af; margin-bottom:6px;">買入價</div>
+				<input id="mCost" class="auth-input" type="number" step="0.01" placeholder="150" />
+			</div>
+			<div>
+				<div style="font-size:12px; color:#9ca3af; margin-bottom:6px;">現價（暫用手填）</div>
+				<input id="mPrice" class="auth-input" type="number" step="0.01" placeholder="160" />
+			</div>
+			</div>
+
+    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px;">
+      <button id="btnSaveHolding" class="btn btn-primary" type="button">保存</button>
+      <button id="btnCancelHolding" class="btn btn-outline" type="button">取消</button>
+    </div>
+  </div>
+</div>
+
+<script>
+console.clear();
+console.log('🚀 v4 App start');
+
+// 全域狀態
+var app = {
+  supabase: null,
+  user: null,
+  editingHoldingId: null,
+  holdingsUIBound: false
+};
+
+window.onload = async function () {
+  const SUPABASE_URL = 'https://umssuhublguujswugbps.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtc3N1aHVibGd1dWpzd3VnYnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4ODQ0MzIsImV4cCI6MjA4MzQ2MDQzMn0.VtRv66cXdbZf0n1qAwFFuSFH4kvuqB0hTgrogNfRD3A'; // ← 你原本嗰條 key 放返入嚟
+
+  app.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  console.log('✅ Supabase init');
+
+  bindAuthEvents();
+
+  const { data: { session } } = await app.supabase.auth.getSession();
+  if (session) {
+    showDashboard(session.user);
+  } else {
+    showAuth();
+  }
+
+  app.supabase.auth.onAuthStateChange(function (event, session) {
+    console.log('🔐 Auth event:', event);
+    if (event === 'SIGNED_IN' && session) {
+      showDashboard(session.user);
+    } else if (event === 'SIGNED_OUT') {
+  // ✅ 保險：任何原因登出都停 timer
+  if (app.refreshTimer) {
+    clearInterval(app.refreshTimer); // [web:50]
+    app.refreshTimer = null;
+  }
+  showAuth();
+}
+
+  });
+};
+
+function bindAuthEvents() {
+  var loginForm = document.getElementById('loginForm');
+  var signupForm = document.getElementById('signupForm');
+  var toggleLink = document.getElementById('toggleLink');
+  var toggleText = document.getElementById('toggleText');
+  var authMessage = document.getElementById('authMessage');
+  var loginBtn = document.getElementById('loginBtn');
+  var signupBtn = document.getElementById('signupBtn');
+
+  function showMsg(text, type) {
+    authMessage.textContent = text;
+    authMessage.className = 'auth-msg ' + type;
+    authMessage.classList.remove('hidden');
+  }
+  function hideMsg() {
+    authMessage.classList.add('hidden');
+  }
+
+  toggleLink.onclick = function () {
+    hideMsg();
+    if (loginForm.classList.contains('hidden')) {
+      loginForm.classList.remove('hidden');
+      signupForm.classList.add('hidden');
+      toggleText.textContent = '還沒有帳號？';
+      toggleLink.textContent = '立即註冊';
+    } else {
+      loginForm.classList.add('hidden');
+      signupForm.classList.remove('hidden');
+      toggleText.textContent = '已有帳號？';
+      toggleLink.textContent = '返回登入';
+    }
+  };
+
+  loginForm.onsubmit = async function (e) {
+    e.preventDefault();
+    hideMsg();
+
+    var email = document.getElementById('loginEmail').value;
+    var password = document.getElementById('loginPassword').value;
+
+    loginBtn.disabled = true;
+    loginBtn.textContent = '登入中...';
+
+    var { error } = await app.supabase.auth.signInWithPassword({ email, password });
+
+    loginBtn.disabled = false;
+    loginBtn.textContent = '登入';
+
+    if (error) showMsg('登入失敗：' + error.message, 'error');
+    else showMsg('登入成功！', 'success');
+  };
+
+  signupForm.onsubmit = async function (e) {
+    e.preventDefault();
+    hideMsg();
+
+    var email = document.getElementById('signupEmail').value;
+    var password = document.getElementById('signupPassword').value;
+    var confirm = document.getElementById('signupPasswordConfirm').value;
+
+    if (password !== confirm) {
+      showMsg('兩次密碼不一致', 'error');
+      return;
+    }
+
+    signupBtn.disabled = true;
+    signupBtn.textContent = '註冊中...';
+
+    var { error } = await app.supabase.auth.signUp({ email, password });
+
+    signupBtn.disabled = false;
+    signupBtn.textContent = '註冊';
+
+    if (error) showMsg('註冊失敗：' + error.message, 'error');
+    else {
+      showMsg('註冊成功！請檢查電郵驗證。', 'success');
+      signupForm.reset();
+    }
+  };
+
+document.getElementById('logoutBtn').onclick = async function() {
+  if (!confirm('確定要登出嗎？')) return;
+
+  // ✅ 停止自動刷新
+  if (app.refreshTimer) {
+    clearInterval(app.refreshTimer); // [web:50]
+    app.refreshTimer = null;
+  }
+
+  localStorage.clear();
+  sessionStorage.clear();
+  await app.supabase.auth.signOut();
+};
+
+}
+
+function showAuth() {
+  document.getElementById('authPage').style.display = 'flex';
+  document.getElementById('dashboardPage').style.display = 'none';
+  
+   destroyChart('chartPie');
+   destroyChart('chartLine');
+
+}
+
+async function showDashboard(user) {
+  app.user = user;
+
+  document.getElementById('authPage').style.display = 'none';
+  document.getElementById('dashboardPage').style.display = 'grid';
+  document.getElementById('userEmail').textContent = user.email;
+  document.getElementById('userIdBox').textContent = 'user_id: ' + user.id;
+
+bindSettingsUI();
+await loadSettingsAndApply();
+
+
+  // 綁定 holdings UI（只綁一次）
+  bindHoldingsUI();
+
+  // 先 render holdings
+  await loadHoldingsAndRender();
+
+bindSyncUI();
+  applyRefreshInterval(document.getElementById('refresh-interval')?.value || 'manual');
+// ✅ 綁定手動快照按鈕
+  const btnSnapshot = document.getElementById('btnSaveSnapshot');
+  if (btnSnapshot && !btnSnapshot.dataset.bound) {
+    btnSnapshot.dataset.bound = '1';
+    btnSnapshot.addEventListener('click', saveSnapshotManually);
+  }
+
+  // 登入時自動存快照（如果今日未存過）
+  await saveSnapshotIfNeeded();
+}
+
+/* =========================
+   Holdings (Portfolio) Logic
+   ========================= */
+
+// 1) 確保 default portfolio 存在
+async function ensureDefaultPortfolio(userId) {
+  const { data: existing, error: qErr } = await app.supabase
+    .from('portfolios')
+    .select('id, portfolio_name')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: true })
+    .limit(1);
+
+  if (qErr) throw qErr;
+  if (existing && existing.length > 0) return existing[0].id;
+
+  const { data: created, error: iErr } = await app.supabase
+    .from('portfolios')
+    .insert([{ user_id: userId, portfolio_name: 'Default Portfolio' }])
+    .select('id')
+    .single();
+
+  if (iErr) throw iErr;
+  return created.id;
+}
+
+// 2) 讀取 holdings + 更新 UI
+async function loadHoldingsAndRender() {
+  if (!app.user) return;
+
+  const portfolioId = await ensureDefaultPortfolio(app.user.id);
+
+  const { data: rows, error } = await app.supabase
+    .from('holdings')
+    .select('id, symbol, quantity, cost_price, current_price, current_value, gain, gain_percent')
+    .eq('user_id', app.user.id)
+    .eq('portfolio_id', portfolioId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+
+  const empty = document.getElementById('holdingsEmpty');
+  const wrap = document.getElementById('holdingsWrap');
+  const tbody = document.getElementById('holdingsTbody');
+
+  tbody.innerHTML = '';
+
+  if (!rows || rows.length === 0) {
+    empty.style.display = 'block';
+    wrap.style.display = 'none';
+    document.getElementById('totalAssets').textContent = 'HK$ 0';
+    document.getElementById('totalGain').textContent = 'HK$ 0';
+    return;
+  }
+
+  empty.style.display = 'none';
+  wrap.style.display = 'block';
+
+  let totalValue = 0;
+  let totalGain = 0;
+
+  rows.forEach(r => {
+    const qty = Number(r.quantity || 0);
+    const cost = Number(r.cost_price || 0);
+    const price = Number(r.current_price ?? r.cost_price ?? 0);
+
+    const totalCost = qty * cost;
+    const currentValue = (r.current_value != null) ? Number(r.current_value) : qty * price;
+    const gain = (r.gain != null) ? Number(r.gain) : (currentValue - totalCost);
+    const gainPct = (r.gain_percent != null)
+      ? Number(r.gain_percent)
+      : (totalCost > 0 ? (gain / totalCost * 100) : 0);
+
+    totalValue += currentValue;
+    totalGain += gain;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${(r.symbol || '').toUpperCase()}</strong></td>
+      <td>${qty.toFixed(2)}</td>
+      <td>${cost.toFixed(2)}</td>
+      <td>${price.toFixed(2)}</td>
+      <td>${currentValue.toFixed(2)}</td>
+      <td style="color:${gain >= 0 ? '#4ade80' : '#ef4444'}"><strong>${gain.toFixed(2)}</strong></td>
+      <td style="color:${gainPct >= 0 ? '#4ade80' : '#ef4444'}"><strong>${gainPct.toFixed(2)}%</strong></td>
+      <td style="display:flex; gap:6px;">
+        <button class="btn btn-outline" type="button"
+          data-edit="${r.id}"
+          data-symbol="${(r.symbol || '').toUpperCase()}"
+          data-qty="${qty}"
+          data-cost="${cost}"
+          data-price="${price}"
+        >編輯</button>
+
+        <button class="btn btn-outline" type="button" data-del="${r.id}">刪除</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('totalAssets').textContent = 'HK$ ' + totalValue.toFixed(2);
+  document.getElementById('totalGain').textContent = 'HK$ ' + totalGain.toFixed(2);
+
+  // 事件委派：只綁一次
+  if (!tbody.dataset.bound) {
+    tbody.dataset.bound = '1';
+
+    tbody.addEventListener('click', async (e) => {
+      const editBtn = e.target.closest('button[data-edit]');
+      const delBtn = e.target.closest('button[data-del]');
+
+      if (editBtn) {
+        openHoldingModalForEdit({
+          id: editBtn.dataset.edit,
+          symbol: editBtn.dataset.symbol,
+          quantity: editBtn.dataset.qty,
+          cost_price: editBtn.dataset.cost,
+          current_price: editBtn.dataset.price
+        });
+        return;
+      }
+
+      if (delBtn) {
+        const id = delBtn.dataset.del;
+        if (!confirm('確定刪除這筆持倉？')) return;
+        await deleteHolding(id);
+        await loadHoldingsAndRender();
+      }
+    });
+  }
+  renderCharts(); // ✅ 每次重新 render holdings 都同步更新圖表
+  // ✅ 每次更新 holdings 後，更新今日快照（如果已存在就覆蓋）
+
+
+
+}
+
+// 3) 新增持倉
+async function createHoldingFromModal() {
+  try {
+    const symbol = document.getElementById('mSymbol').value.trim().toUpperCase();
+    const addQty = Number(document.getElementById('mQty').value);
+    const addCost = Number(document.getElementById('mCost').value);
+    const currentPrice = Number(document.getElementById('mPrice').value);
+
+    if (!app.user || !app.user.id) {
+      alert('❌ 用戶未登入');
+      return;
+    }
+    if (!symbol || !Number.isFinite(addQty) || addQty <= 0 || !Number.isFinite(addCost) || addCost <= 0 || !Number.isFinite(currentPrice) || currentPrice <= 0) {
+      alert('❌ 請輸入有效的代碼/股數/買入價/現價（都要 > 0）');
+      return;
+    }
+
+    const portfolioId = await ensureDefaultPortfolio(app.user.id);
+
+    // 1) 先查有冇同 ticker（同一 portfolio）
+    const { data: existingRows, error: qErr } = await app.supabase
+      .from('holdings')
+      .select('id, quantity, cost_price')
+      .eq('user_id', app.user.id)
+      .eq('portfolio_id', portfolioId)
+      .eq('symbol', symbol)
+      .limit(1);
+
+    if (qErr) throw qErr;
+
+    const purchaseDate = new Date().toISOString().slice(0, 10);
+
+    // 2) 如果存在 → 加倉（update）
+    if (existingRows && existingRows.length > 0) {
+      const row = existingRows[0];
+
+      const oldQty = Number(row.quantity || 0);
+      const oldCost = Number(row.cost_price || 0);
+
+      const newQty = oldQty + addQty;
+
+      // 加權平均成本
+      const newCost =
+        newQty > 0 ? ((oldQty * oldCost) + (addQty * addCost)) / newQty : addCost;
+
+      const totalCost = newQty * newCost;
+      const currentValue = newQty * currentPrice;
+      const gain = currentValue - totalCost;
+      const gainPercent = totalCost > 0 ? (gain / totalCost * 100) : 0;
+
+      const { error: uErr } = await app.supabase
+        .from('holdings')
+        .update({
+          quantity: newQty,
+          cost_price: newCost,
+          current_price: currentPrice,
+          current_value: currentValue,
+          gain: gain,
+          gain_percent: gainPercent,
+          purchase_date: purchaseDate
+        })
+        .eq('id', row.id)
+        .eq('user_id', app.user.id);
+
+      if (uErr) throw uErr;
+
+      return; // ✅ 結束
+    }
+
+    // 3) 如果不存在 → 新增（insert）
+    const totalCost = addQty * addCost;
+    const currentValue = addQty * currentPrice;
+    const gain = currentValue - totalCost;
+    const gainPercent = totalCost > 0 ? (gain / totalCost * 100) : 0;
+
+    const { error: iErr } = await app.supabase
+      .from('holdings')
+      .insert([{
+        user_id: app.user.id,
+        portfolio_id: portfolioId,
+        symbol: symbol,
+        quantity: addQty,
+        cost_price: addCost,
+        purchase_date: purchaseDate,
+        current_price: currentPrice,
+        current_value: currentValue,
+        gain: gain,
+        gain_percent: gainPercent
+      }]);
+
+    if (iErr) throw iErr;
+
+  } catch (e) {
+    console.error('createHoldingFromModal error:', e);
+    alert('新增/加倉失敗：' + (e.message || e));
+  }
+}
+
+
+// 4) 編輯：開窗 + 填值
+function openHoldingModalForEdit(row) {
+  app.editingHoldingId = row.id;
+
+  const titleEl = document.getElementById('holdingModalTitle');
+  const saveBtn = document.getElementById('btnSaveHolding');
+  if (titleEl) titleEl.textContent = '編輯持倉';
+  if (saveBtn) saveBtn.textContent = '更新';
+
+  document.getElementById('mSymbol').value = (row.symbol || '').toUpperCase();
+  document.getElementById('mQty').value = Number(row.quantity) || 0;
+  document.getElementById('mCost').value = Number(row.cost_price) || 0;
+  document.getElementById('mPrice').value = Number(row.current_price ?? row.cost_price ?? 0);
+
+  openHoldingModal();
+}
+
+// 5) 更新持倉
+async function updateHoldingFromModal() {
+  if (!app.editingHoldingId) throw new Error('editingHoldingId missing');
+
+  const symbol = document.getElementById('mSymbol').value.trim().toUpperCase();
+  const quantity = Number(document.getElementById('mQty').value);
+  const cost_price = Number(document.getElementById('mCost').value);
+  const current_price = Number(document.getElementById('mPrice').value);
+
+  if (!symbol || !Number.isFinite(quantity) || !Number.isFinite(cost_price) || !Number.isFinite(current_price)) {
+    alert('❌ 請輸入完整且有效的數值');
+    return;
+  }
+
+  const total_cost = quantity * cost_price;
+  const current_value = quantity * current_price;
+  const gain = current_value - total_cost;
+  const gain_percent = total_cost > 0 ? (gain / total_cost * 100) : 0;
+
+  const { error } = await app.supabase
+    .from('holdings')
+    .update({
+      symbol,
+      quantity,
+      cost_price,
+      current_price,
+      current_value,
+      gain,
+      gain_percent
+    })
+    .eq('id', app.editingHoldingId)
+    .eq('user_id', app.user.id);
+
+  if (error) throw error;
+
+  app.editingHoldingId = null;
+}
+
+// 6) 刪除持倉
+async function deleteHolding(id) {
+  const { error } = await app.supabase
+    .from('holdings')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', app.user.id);
+
+  if (error) throw error;
+}
+
+/* =========================
+   Modal + UI Binding
+   ========================= */
+
+function openHoldingModal() {
+  document.getElementById('holdingModal').style.display = 'flex';
+}
+
+function openHoldingModalForAdd() {
+  app.editingHoldingId = null;
+
+  const titleEl = document.getElementById('holdingModalTitle');
+  const saveBtn = document.getElementById('btnSaveHolding');
+  if (titleEl) titleEl.textContent = '新增持倉';
+  if (saveBtn) saveBtn.textContent = '保存';
+
+  document.getElementById('mSymbol').value = '';
+  document.getElementById('mQty').value = '';
+  document.getElementById('mCost').value = '';
+  document.getElementById('mPrice').value = '';
+
+  openHoldingModal();
+}
+
+function closeHoldingModal() {
+  document.getElementById('holdingModal').style.display = 'none';
+  document.getElementById('mSymbol').value = '';
+  document.getElementById('mQty').value = '';
+  document.getElementById('mCost').value = '';
+  document.getElementById('mPrice').value = '';
+  app.editingHoldingId = null;
+}
+
+function bindHoldingsUI() {
+  if (app.holdingsUIBound) return; // ✅ 防止重複綁定
+  app.holdingsUIBound = true;
+
+  const btnAdd = document.getElementById('btnAddHolding');
+  const btnClose = document.getElementById('btnCloseModal');
+  const btnCancel = document.getElementById('btnCancelHolding');
+  const btnSave = document.getElementById('btnSaveHolding');
+
+  if (btnAdd) btnAdd.addEventListener('click', openHoldingModalForAdd);
+  if (btnClose) btnClose.addEventListener('click', closeHoldingModal);
+  if (btnCancel) btnCancel.addEventListener('click', closeHoldingModal);
+
+  if (btnSave) {
+    btnSave.addEventListener('click', async () => {
+      try {
+        btnSave.disabled = true;
+
+        if (app.editingHoldingId) {
+          await updateHoldingFromModal();
+        } else {
+          await createHoldingFromModal();
         }
+
+        closeHoldingModal();
+        await loadHoldingsAndRender();
+      } catch (e) {
+        console.error('Save error:', e);
+        alert('保存失敗：' + (e.message || e));
+      } finally {
+        btnSave.disabled = false;
+      }
+    });
+  }
+  
+}
+function bindSettingsUI() {
+  const btn = document.getElementById('btnSaveSettings');
+  if (!btn || btn.dataset.bound) return;
+  btn.dataset.bound = '1';
+
+  btn.addEventListener('click', async () => {
+    try {
+      if (!app.user) return alert('❌ 未登入');
+
+      btn.disabled = true;
+      btn.textContent = '保存中...';
+
+      const taxRate = Number(document.getElementById('tax-rate').value);
+      const rfRate = Number(document.getElementById('rf-rate').value);
+      const refreshInterval = document.getElementById('refresh-interval')?.value || 'manual';
+
+      if (!Number.isFinite(taxRate) || taxRate < 0 || taxRate > 100) {
+        alert('❌ 稅率要 0-100');
+        return;
+      }
+      if (!Number.isFinite(rfRate) || rfRate < 0 || rfRate > 100) {
+        alert('❌ 無風險利率要合理數值');
+        return;
+      }
+
+      const payload = {
+        user_id: app.user.id,
+        tax_rate: taxRate,
+        rf_rate: rfRate,
+        refresh_interval: refreshInterval,
+        currency: 'HKD',
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await app.supabase
+        .from('settings')
+        .upsert(payload, { onConflict: 'user_id' }); // 依 user_id 存/更新 [web:35]
+
+      if (error) throw error;
+
+      alert('✅ 設置已保存');
+    } catch (e) {
+      console.error('save settings error:', e);
+      alert('保存失敗：' + (e.message || e));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '💾 保存設置';
+    }
+  });
+}
+
+async function loadSettingsAndApply() {
+  if (!app.user) return;
+
+  const { data, error } = await app.supabase
+    .from('settings')
+    .select('tax_rate, rf_rate, refresh_interval, currency')
+    .eq('user_id', app.user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error('load settings error:', error);
+    return;
+  }
+
+  // 無資料就用預設
+  document.getElementById('tax-rate').value = (data?.tax_rate ?? 30);
+  document.getElementById('rf-rate').value = (data?.rf_rate ?? 2.5);
+
+  const sel = document.getElementById('refresh-interval');
+  if (sel) sel.value = (data?.refresh_interval ?? 'manual');
+}
+// ===== Refresh + Manual Sync =====
+app.refreshTimer = null;
+
+function parseRefreshIntervalToMs(v) {
+  if (!v || v === 'manual') return null;
+  if (v === '5m') return 5 * 60 * 1000;
+  if (v === '15m') return 15 * 60 * 1000;
+  if (v === '30m') return 30 * 60 * 1000;
+  if (v === '1h') return 60 * 60 * 1000;
+  return null;
+}
+
+function applyRefreshInterval(v) {
+  // 先清掉舊 timer（轉頻率/登出/重登入都安全）
+  if (app.refreshTimer) {
+    clearInterval(app.refreshTimer); // 清除由 setInterval 建立嘅重複任務 [web:50]
+    app.refreshTimer = null;
+  }
+
+  const ms = parseRefreshIntervalToMs(v);
+  if (!ms) return;
+
+  // 立即跑一次，之後按頻率跑
+  safeSyncOnce('auto');
+
+  app.refreshTimer = setInterval(() => {
+    safeSyncOnce('auto');
+  }, ms); // setInterval 會回傳 intervalID，之後用 clearInterval 取消 [web:53]
+}
+
+async function safeSyncOnce(mode) {
+  if (!app.user) return;
+
+  const btn = document.getElementById('btnManualSync');
+  try {
+    if (btn && mode === 'manual') {
+      btn.disabled = true;
+      btn.textContent = '同步中...';
+    }
+
+    await loadHoldingsAndRender();
+
+    // 用按鈕文字顯示最後同步時間（唔洗改 UI）
+    const t = new Date();
+    const hh = String(t.getHours()).padStart(2, '0');
+    const mm = String(t.getMinutes()).padStart(2, '0');
+    const ss = String(t.getSeconds()).padStart(2, '0');
+    if (btn) btn.textContent = `🔄 手動同步（${hh}:${mm}:${ss}）`;
+  } catch (e) {
+    console.error('sync error:', e);
+    alert('同步失敗：' + (e.message || e));
+    if (btn) btn.textContent = '🔄 手動同步';
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function bindSyncUI() {
+  const sel = document.getElementById('refresh-interval');
+  const btn = document.getElementById('btnManualSync');
+
+  if (sel && !sel.dataset.bound) {
+    sel.dataset.bound = '1';
+    sel.addEventListener('change', async () => {
+      const newVal = sel.value;
+      
+      // 1) 即刻套用新頻率
+      applyRefreshInterval(newVal);
+
+      // 2) 自動寫回 DB（免按保存）
+      if (app.user) {
+        try {
+          const { error } = await app.supabase
+            .from('settings')
+            .upsert({
+              user_id: app.user.id,
+              refresh_interval: newVal,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id' });
+
+          if (error) throw error;
+
+          console.log('✅ refresh_interval 已自動保存:', newVal);
+        } catch (e) {
+          console.error('自動保存 refresh_interval 失敗:', e);
+          // 唔 alert 用戶，靜靜記 log 就好（因為佢只係改個 dropdown）
+        }
+      }
+    });
+  }
+
+  if (btn && !btn.dataset.bound) {
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', () => safeSyncOnce('manual'));
+  }
+}
+
+// ===== Charts =====
+app.chartPie = null;
+app.chartLine = null;
+
+function renderCharts() {
+  renderPieChart();
+  renderLineChart();
+}
+
+async function renderPieChart() {
+  if (!app.user) return;
+
+  const portfolioId = await ensureDefaultPortfolio(app.user.id);
+
+  const { data: rows } = await app.supabase
+  .from('holdings')
+  .select('symbol, current_value')
+  .eq('user_id', app.user.id)
+  .eq('portfolio_id', portfolioId);
+
+
+  if (!rows || rows.length === 0) {
+    destroyChart('chartPie');
+    return;
+  }
+
+  const labels = [];
+  const data = [];
+  const colors = [
+    '#3b82f6', '#22c55e', '#eab308', '#ef4444', '#8b5cf6',
+    '#ec4899', '#06b6d4', '#f97316', '#10b981', '#6366f1'
+  ];
+
+  rows.forEach(r => {
+    labels.push((r.symbol || '').toUpperCase());
+    data.push(Number(r.current_value || 0));
+  });
+
+  const ctx = document.getElementById('chartPie');
+  if (!ctx) return;
+
+  destroyChart('chartPie');
+
+  app.chartPie = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: colors.slice(0, labels.length),
+        borderColor: '#020617',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { color: '#e5e7eb', font: { size: 11 } }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const label = ctx.label || '';
+              const value = ctx.parsed || 0;
+              const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+              const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+              return `${label}: HK$ ${value.toFixed(2)} (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+async function renderLineChart() {
+  if (!app.user) return;
+
+  try {
+    const portfolioId = await ensureDefaultPortfolio(app.user.id);
+
+    // 讀取最近 30 日快照
+    const { data: snapshots } = await app.supabase
+      .from('portfolio_snapshots')
+      .select('snapshot_date, total_value')
+      .eq('user_id', app.user.id)
+      .eq('portfolio_id', portfolioId)
+      .order('snapshot_date', { ascending: true })
+      .limit(30);
+
+    const labels = [];
+    const data = [];
+
+    if (!snapshots || snapshots.length === 0) {
+      // 如果冇歷史數據，用模擬數據（30 日）
+      const today = new Date();
+      const totalAssetsText = document.getElementById('totalAssets')?.textContent || 'HK$ 0';
+      const totalAssets = Number(totalAssetsText.replace(/[^\d.-]/g, '')) || 10000;
+
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        labels.push(`${d.getMonth() + 1}/${d.getDate()}`);
         
-        // ✅ 正確放置：在 app 物件外面，確保所有模組已定義完整
-        window.addEventListener('DOMContentLoaded', () => {
-            app.init()
-            app.etf.init()
-            app.portfolio.init()
-        })
-        
-        window.addEventListener('DOMContentLoaded', () => {
-            app.init()
-            app.etf.init()
-            app.portfolio.init()
-        })
-    </script>
+        const variation = (Math.random() - 0.5) * 0.06;
+        const val = totalAssets * (1 + variation * (i / 30));
+        data.push(val);
+      }
+      data[data.length - 1] = totalAssets;
+    } else {
+      // 使用真實快照數據
+      snapshots.forEach(s => {
+        const d = new Date(s.snapshot_date);
+        labels.push(`${d.getMonth() + 1}/${d.getDate()}`);
+        data.push(Number(s.total_value || 0));
+      });
+    }
+
+    const ctx = document.getElementById('chartLine');
+    if (!ctx) return;
+
+    destroyChart('chartLine');
+
+    app.chartLine = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: '總資產 (HK$)',
+          data: data,
+          borderColor: '#22c55e',
+          backgroundColor: 'rgba(34, 197, 94, 0.1)',
+          borderWidth: 2,
+          tension: 0.3,
+          fill: true,
+          pointRadius: 2,
+          pointHoverRadius: 5,
+          pointBackgroundColor: '#22c55e'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            callbacks: {
+              label: function(ctx) {
+                return `總資產: HK$ ${ctx.parsed.y.toFixed(2)}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#9ca3af', font: { size: 10 } },
+            grid: { color: '#1f2937' }
+          },
+          y: {
+            ticks: {
+              color: '#9ca3af',
+              font: { size: 10 },
+              callback: function(value) {
+                return 'HK$ ' + value.toLocaleString();
+              }
+            },
+            grid: { color: '#1f2937' }
+          }
+        }
+      }
+    });
+  } catch (e) {
+    console.error('renderLineChart error:', e);
+  }
+}
+
+
+function destroyChart(id) {
+  if (id === 'chartPie' && app.chartPie) {
+    app.chartPie.destroy();
+    app.chartPie = null;
+  }
+  if (id === 'chartLine' && app.chartLine) {
+    app.chartLine.destroy();
+    app.chartLine = null;
+  }
+}
+// ===== Charts =====
+app.chartPie = null;
+app.chartLine = null;
+
+function renderCharts() {
+  renderPieChart();
+  renderLineChart();
+}
+
+// ===== Portfolio Snapshots =====
+async function saveSnapshotIfNeeded() {
+  if (!app.user) return;
+
+  try {
+    const portfolioId = await ensureDefaultPortfolio(app.user.id);
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
+    // 檢查今日有冇快照
+    const { data: existing } = await app.supabase
+      .from('portfolio_snapshots')
+      .select('id')
+      .eq('user_id', app.user.id)
+      .eq('portfolio_id', portfolioId)
+      .eq('snapshot_date', today)
+      .maybeSingle();
+
+    if (existing) {
+      console.log('✅ 今日快照已存在，唔重複保存');
+      return; // 已經有，唔重複存
+    }
+
+    // 計算當前總資產 / 總收益
+    const { data: rows } = await app.supabase
+      .from('holdings')
+      .select('current_value, gain')
+      .eq('user_id', app.user.id)
+      .eq('portfolio_id', portfolioId);
+
+    let totalValue = 0;
+    let totalGain = 0;
+
+    if (rows && rows.length > 0) {
+      rows.forEach(r => {
+        totalValue += Number(r.current_value || 0);
+        totalGain += Number(r.gain || 0);
+      });
+    }
+
+    const totalCost = totalValue - totalGain;
+    const totalGainPercent = totalCost > 0 ? (totalGain / totalCost * 100) : 0;
+
+    // 儲存快照
+    const { error } = await app.supabase
+      .from('portfolio_snapshots')
+      .insert([{
+        user_id: app.user.id,
+        portfolio_id: portfolioId,
+        snapshot_date: today,
+        total_value: totalValue,
+        total_gain: totalGain,
+        total_gain_percent: totalGainPercent,
+        holdings_count: rows ? rows.length : 0
+      }]);
+
+    if (error) throw error;
+
+    console.log('💾 快照已保存:', { date: today, totalValue, totalGain });
+  } catch (e) {
+    console.error('保存快照失敗:', e);
+  }
+  
+  
+}
+
+async function saveSnapshotManually() {
+  if (!app.user) return alert('❌ 未登入');
+
+  const btn = document.getElementById('btnSaveSnapshot');
+  
+  try {
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '保存中...';
+    }
+
+    const portfolioId = await ensureDefaultPortfolio(app.user.id);
+    const today = new Date().toISOString().slice(0, 10);
+
+    // 計算當前總資產 / 總收益
+    const { data: rows } = await app.supabase
+      .from('holdings')
+      .select('current_value, gain')
+      .eq('user_id', app.user.id)
+      .eq('portfolio_id', portfolioId);
+
+    let totalValue = 0;
+    let totalGain = 0;
+
+    if (rows && rows.length > 0) {
+      rows.forEach(r => {
+        totalValue += Number(r.current_value || 0);
+        totalGain += Number(r.gain || 0);
+      });
+    }
+
+    const totalCost = totalValue - totalGain;
+    const totalGainPercent = totalCost > 0 ? (totalGain / totalCost * 100) : 0;
+
+    // 用 upsert（如果今日已存在就覆蓋）
+    const { error } = await app.supabase
+      .from('portfolio_snapshots')
+      .upsert({
+        user_id: app.user.id,
+        portfolio_id: portfolioId,
+        snapshot_date: today,
+        total_value: totalValue,
+        total_gain: totalGain,
+        total_gain_percent: totalGainPercent,
+        holdings_count: rows ? rows.length : 0
+      }, {
+        onConflict: 'user_id,portfolio_id,snapshot_date'
+      });
+
+    if (error) throw error;
+
+    console.log('📸 手動快照已保存:', { date: today, totalValue });
+    alert('✅ 快照已保存！');
+
+    // 刷新趨勢圖
+    await renderLineChart();
+
+  } catch (e) {
+    console.error('手動保存快照失敗:', e);
+    alert('保存失敗：' + (e.message || e));
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '📸 保存快照';
+    }
+  }
+}
+
+
+async function renderPieChart() {
+  if (!app.user) return;
+
+  const portfolioId = await ensureDefaultPortfolio(app.user.id);
+
+  const { data: rows } = await app.supabase
+  .from('holdings')
+  .select('symbol, current_value')
+  .eq('user_id', app.user.id)
+  .eq('portfolio_id', portfolioId);
+
+
+
+  if (!rows || rows.length === 0) {
+    destroyChart('chartPie');
+    return;
+  }
+
+  const labels = [];
+  const data = [];
+  const colors = [
+    '#3b82f6', '#22c55e', '#eab308', '#ef4444', '#8b5cf6',
+    '#ec4899', '#06b6d4', '#f97316', '#10b981', '#6366f1'
+  ];
+
+  rows.forEach(r => {
+    labels.push((r.symbol || '').toUpperCase());
+   data.push(Number(r.current_value || 0));
+  });
+
+  const ctx = document.getElementById('chartPie');
+  if (!ctx) return;
+
+  destroyChart('chartPie');
+
+  app.chartPie = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: colors.slice(0, labels.length),
+        borderColor: '#020617',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { color: '#e5e7eb', font: { size: 11 } }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const label = ctx.label || '';
+              const value = ctx.parsed || 0;
+              const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+              const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+              return `${label}: HK$ ${value.toFixed(2)} (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderLineChart() {
+  const labels = [];
+  const data = [];
+  const today = new Date();
+
+  const totalAssetsText = document.getElementById('totalAssets')?.textContent || 'HK$ 0';
+  const totalAssets = Number(totalAssetsText.replace(/[^\d.-]/g, '')) || 10000;
+
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    labels.push(`${d.getMonth() + 1}/${d.getDate()}`);
+
+    const variation = (Math.random() - 0.5) * 0.06;
+    const val = totalAssets * (1 + variation * (i / 30));
+    data.push(val);
+  }
+
+  data[data.length - 1] = totalAssets;
+
+  const ctx = document.getElementById('chartLine');
+  if (!ctx) return;
+
+  destroyChart('chartLine');
+
+  app.chartLine = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '總資產 (HK$)',
+        data: data,
+        borderColor: '#22c55e',
+        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+        borderWidth: 2,
+        tension: 0.3,
+        fill: true,
+        pointRadius: 0,
+        pointHoverRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          callbacks: {
+            label: function(ctx) {
+              return `總資產: HK$ ${ctx.parsed.y.toFixed(2)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#9ca3af', font: { size: 10 } },
+          grid: { color: '#1f2937' }
+        },
+        y: {
+          ticks: {
+            color: '#9ca3af',
+            font: { size: 10 },
+            callback: function(value) {
+              return 'HK$ ' + value.toLocaleString();
+            }
+          },
+          grid: { color: '#1f2937' }
+        }
+      }
+    }
+  });
+}
+
+function destroyChart(id) {
+  if (id === 'chartPie' && app.chartPie) {
+    app.chartPie.destroy();
+    app.chartPie = null;
+  }
+  if (id === 'chartLine' && app.chartLine) {
+    app.chartLine.destroy();
+    app.chartLine = null;
+  }
+}
+
+
+</script>
 </body>
 </html>
