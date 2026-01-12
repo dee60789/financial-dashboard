@@ -577,6 +577,13 @@
     @media (max-width: 600px) {
       .grid { grid-template-columns: 1fr; }
     }
+	.page-content {
+	display: block;
+	}
+	.page-content.hidden {
+	display: none;
+	}
+
   </style>
 </head>
 <body>
@@ -646,6 +653,17 @@
       </div>
     </div>
 
+<!-- Portfolio Selector -->
+<div style="display:flex; align-items:center; gap:8px;">
+  <span style="font-size:12px; color:var(--muted);">投資組合：</span>
+  <select id="portfolio-selector" class="auth-input" style="min-width:150px; font-size:12px; padding:6px 10px;">
+    <option value="">載入中...</option>
+  </select>
+  <button id="btn-manage-portfolios" class="btn btn-outline" style="font-size:11px; padding:5px 10px;">
+    ⚙️ 管理
+  </button>
+</div>
+
     <div class="user-block">
       <div class="sync-status">
         <span>用戶 Email：<span id="userEmail"></span></span>
@@ -664,18 +682,19 @@
       <div>
         <div class="nav-group-label">主控台</div>
         <ul class="nav-list">
-          <li class="nav-item active">
-            <span class="nav-item-icon">📊</span>
-            <span class="label">儀表板</span>
-          </li>
+          <li class="nav-item active" data-page="dashboard">
+		<span class="nav-item-icon">📊</span>
+		<span class="label">儀表板</span>
+		</li>
+
           <li class="nav-item">
             <span class="nav-item-icon">📈</span>
             <span class="label">ETF 追蹤</span>
           </li>
-          <li class="nav-item">
-            <span class="nav-item-icon">💰</span>
-            <span class="label">投資組合</span>
-          </li>
+          <li class="nav-item" data-page="portfolio-overview">
+			<span class="nav-item-icon">💼</span>
+			<span class="label">跨組合總覽</span>
+			</li>
           <li class="nav-item">
             <span class="nav-item-icon">⚠️</span>
             <span class="label">風險評估</span>
@@ -693,10 +712,12 @@
       <div>
         <div class="nav-group-label">系統</div>
         <ul class="nav-list">
-          <li class="nav-item">
-            <span class="nav-item-icon">🔑</span>
-            <span class="label">API 配置</span>
-          </li>
+         <li class="nav-item" data-page="api-config">
+		<span class="nav-item-icon">🔑</span>
+		<span class="label">API 配置</span>
+		</li>
+
+
           <li class="nav-item">
             <span class="nav-item-icon">⚙️</span>
             <span class="label">系統設置</span>
@@ -709,6 +730,7 @@
     </aside>
 
     <main class="main">
+	<div id="page-dashboard" class="page-content">
       <div class="top-row">
         <div>
           <div class="connection-pill">
@@ -725,7 +747,7 @@
           </div>
         </div>
 
-        <div class="control-row">
+       <div class="control-row">
   <div class="select">
     <label for="refresh-interval">刷新頻率:</label>
     <select id="refresh-interval">
@@ -750,7 +772,9 @@
   <button id="btnSaveSettings" class="btn btn-primary">💾 保存設置</button>
   <button id="btnManualSync" class="btn btn-outline">🔄 手動同步</button>
   <button id="btnSaveSnapshot" class="btn btn-outline">📸 保存快照</button>
+  <button id="btnUpdatePrices" class="btn btn-outline">💹 更新所有現價</button>
 </div>
+
 
       </div>
 
@@ -863,7 +887,7 @@
               <div class="metric-label">
                 預期月度被動收入
               </div>
-              <div class="metric-value">HK$ 0</div>
+              <div class="metric-value" id="passiveIncome">HK$ 0</div>
               <div class="metric-change up">
                 生活方式等價：0 杯咖啡 / 0 次外出晚餐
               </div>
@@ -978,6 +1002,315 @@
           user_id: -
         </div>
       </div>
+	  </div>
+	  
+	  
+  <!-- 儀表板頁面 -->
+	
+
+  <!-- API 配置頁面 -->
+<!-- API 配置頁面 -->
+<div id="page-api-config" class="page-content" style="display:none;">
+  <div style="max-width: 600px;">
+    <h2 style="margin-bottom: 8px;">🔑 API 配置</h2>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 20px;">
+      設置你的股價 API 金鑰，用於自動更新持倉現價。支援 Alpha Vantage、Polygon 或 FMP。
+    </p>
+
+   <!-- 貨幣選擇器 -->
+    <div class="card" style="margin-bottom: 16px;">
+      <div class="card-header">
+        <div class="card-title">💱 顯示貨幣</div>
+      </div>
+      <div class="card-body">
+        <p style="margin-bottom: 10px; font-size: 12px;">
+          選擇你的主要顯示貨幣，所有金額會自動轉換（使用實時匯率）。
+        </p>
+        <select id="select-currency" class="auth-input" style="width: 100%;">
+		  <option value="USD" selected>美元 (USD) - $</option>  
+		  <option value="HKD">港幣 (HKD) - HK$</option>  
+          <option value="CNY">人民幣 (CNY) - ¥</option>
+          <option value="JPY">日元 (JPY) - ¥</option>
+          <option value="TWD">台幣 (TWD) - NT$</option>
+          <option value="EUR">歐元 (EUR) - €</option>
+          <option value="GBP">英鎊 (GBP) - £</option>
+        </select>
+      </div>
+    </div>
+
+<!-- 跨組合總覽頁面 -->
+<div id="page-portfolio-overview" class="page-content" style="display:none;">
+  <h2 style="margin-bottom: 16px;">💼 跨組合總覽</h2>
+
+  <!-- 全部組合總資產 -->
+  <div class="card" style="margin-bottom: 16px;">
+    <div class="card-header">
+      <div class="card-title">📊 全部投資組合總資產</div>
+    </div>
+    <div class="card-body">
+      <div class="metric-row">
+        <div class="metric">
+          <div class="metric-label">總資產</div>
+          <div class="metric-value" id="overview-total-assets">$ 0</div>
+          <div class="metric-change muted" id="overview-portfolios-count">包含 0 個組合</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">總收益</div>
+          <div class="metric-value" id="overview-total-gain">$ 0</div>
+          <div class="metric-change" id="overview-total-gain-pct">0.00%</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">總持倉數</div>
+          <div class="metric-value" id="overview-holdings-count">0</div>
+          <div class="metric-change muted">跨所有組合</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Portfolio 對比表 -->
+  <div class="card" style="margin-bottom: 16px;">
+    <div class="card-header">
+      <div class="card-title">📋 組合對比</div>
+    </div>
+    <div class="card-body">
+      <div style="overflow-x:auto;">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>組合名稱</th>
+              <th>總資產</th>
+              <th>收益</th>
+              <th>收益率</th>
+              <th>持倉數</th>
+              <th>佔比</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="portfolio-comparison-tbody">
+            <tr>
+              <td colspan="7" style="text-align:center; color:var(--muted); padding:20px;">
+                載入中...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 資產分佈餅圖（按組合） -->
+  <div class="grid">
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>🥧 資產分佈</span>
+          <span class="pill-soft">按組合</span>
+        </div>
+      </div>
+      <div class="card-body" style="position:relative; height:280px;">
+        <canvas id="chartPortfolioPie"></canvas>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span>📈 組合趨勢對比</span>
+          <span class="pill-soft">近 30 日</span>
+        </div>
+      </div>
+      <div class="card-body" style="position:relative; height:280px;">
+        <canvas id="chartPortfolioLines"></canvas>
+      </div>
+    </section>
+  </div>
+</div>
+
+
+<!-- 匯率換算器 -->
+<div class="card" style="margin-bottom: 16px;">
+  <div class="card-header">
+    <div class="card-title">🧮 匯率換算器</div>
+  </div>
+  <div class="card-body">
+    <div style="display:grid; grid-template-columns: 1fr auto 1fr; gap:12px; align-items:end;">
+      <!-- 來源 -->
+      <div>
+        <div style="font-size:12px; color:#9ca3af; margin-bottom:6px;">金額</div>
+        <input 
+          id="calc-amount" 
+          type="number" 
+          class="auth-input" 
+          placeholder="100" 
+          value="100"
+          min="0"
+          step="0.01"
+        />
+        <select id="calc-from" class="auth-input" style="margin-top:8px; width:100%;">
+          <option value="USD" selected>美元 (USD)</option>
+          <option value="HKD">港幣 (HKD)</option>
+          <option value="CNY">人民幣 (CNY)</option>
+          <option value="JPY">日元 (JPY)</option>
+          <option value="TWD">台幣 (TWD)</option>
+          <option value="EUR">歐元 (EUR)</option>
+          <option value="GBP">英鎊 (GBP)</option>
+        </select>
+      </div>
+
+      <!-- 箭頭 -->
+      <div style="padding-bottom:8px; font-size:20px; color:var(--muted);">
+        →
+      </div>
+
+      <!-- 目標 -->
+      <div>
+        <div style="font-size:12px; color:#9ca3af; margin-bottom:6px;">結果</div>
+        <div 
+          id="calc-result" 
+          style="
+            padding:10px 12px; 
+            border-radius:8px; 
+            border:1px solid var(--border); 
+            background:#020617; 
+            color:#22c55e; 
+            font-size:16px; 
+            font-weight:600;
+            text-align:right;
+          "
+        >
+          -
+        </div>
+        <select id="calc-to" class="auth-input" style="margin-top:8px; width:100%;">
+          <option value="USD">美元 (USD)</option>
+          <option value="HKD" selected>港幣 (HKD)</option>
+          <option value="CNY">人民幣 (CNY)</option>
+          <option value="JPY">日元 (JPY)</option>
+          <option value="TWD">台幣 (TWD)</option>
+          <option value="EUR">歐元 (EUR)</option>
+          <option value="GBP">英鎊 (GBP)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- 匯率列表 -->
+<div class="card" style="margin-bottom: 16px;">
+  <div class="card-header">
+    <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+      <div class="card-title">📊 當前匯率</div>
+      <button id="btn-refresh-rates" class="btn btn-outline" style="font-size:11px; padding:4px 10px;">
+        🔄 刷新匯率
+      </button>
+    </div>
+  </div>
+  <div class="card-body">
+    <p style="margin-bottom: 10px; font-size: 12px; color: var(--muted);">
+      基礎貨幣：<strong>USD</strong> ·
+      顯示貨幣：<strong id="display-currency-name">HKD</strong> ·
+      最後更新：<span id="rates-updated-time">未更新</span>
+    </p>
+    <table class="table" style="margin-top:8px;">
+      <thead>
+        <tr>
+          <th>貨幣對</th>
+          <th>匯率</th>
+          <th>來源</th>
+        </tr>
+      </thead>
+      <tbody id="rates-table-body">
+        <tr>
+          <td colspan="3" style="text-align:center; color:var(--muted);">
+            尚未載入匯率
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+    <!-- Alpha Vantage -->
+    <div class="card" style="margin-bottom: 16px;">
+      <div class="card-header">
+        <div class="card-title">Alpha Vantage（免費方案）</div>
+      </div>
+      <div class="card-body">
+        <p style="margin-bottom: 10px; font-size: 12px;">
+          免費額度：每分鐘 5 次請求、每日 500 次。
+          <a href="https://www.alphavantage.co/support/#api-key" target="_blank">申請免費 key</a>
+        </p>
+        <input 
+          id="input-alpha-key" 
+          type="text" 
+          class="auth-input" 
+          placeholder="貼上你的 Alpha Vantage API key"
+          style="margin-bottom: 8px;"
+        />
+      </div>
+    </div>
+
+    <!-- Polygon -->
+    <div class="card" style="margin-bottom: 16px;">
+      <div class="card-header">
+        <div class="card-title">Polygon.io（付費方案）</div>
+      </div>
+      <div class="card-body">
+        <p style="margin-bottom: 10px; font-size: 12px;">
+          適合需要實時數據的用戶。
+          <a href="https://polygon.io/pricing" target="_blank">查看方案</a>
+        </p>
+        <input 
+          id="input-polygon-key" 
+          type="text" 
+          class="auth-input" 
+          placeholder="貼上你的 Polygon API key（可選）"
+          style="margin-bottom: 8px;"
+        />
+      </div>
+    </div>
+
+    <!-- FMP -->
+    <div class="card" style="margin-bottom: 16px;">
+      <div class="card-header">
+        <div class="card-title">Financial Modeling Prep（推薦）</div>
+      </div>
+      <div class="card-body">
+        <p style="margin-bottom: 10px; font-size: 12px;">
+          免費額度：每日 250 次請求。支援美股、港股、加密貨幣。
+          <a href="https://site.financialmodelingprep.com/developer/docs" target="_blank">查看文檔</a>
+        </p>
+        <input 
+          id="input-fmp-key" 
+          type="text" 
+          class="auth-input" 
+          placeholder="貼上你的 FMP API key"
+          style="margin-bottom: 8px;"
+        />
+      </div>
+    </div>
+
+    <button id="btn-save-api-keys" class="btn btn-primary">💾 保存 API 金鑰</button>
+    <button id="btn-test-api" class="btn btn-outline" style="margin-left: 8px;">🧪 測試連接（FMP）</button>
+
+<!-- 重置按鈕 -->
+<div style="margin-top: 24px; padding-top: 16px; border-top: 1px dashed var(--border);">
+  <button id="btn-reset-settings" class="btn btn-outline" style="color: var(--danger); border-color: var(--danger);">
+    🗑️ 清除所有設定並重置
+  </button>
+  <p style="font-size: 11px; color: var(--muted); margin-top: 8px;">
+    ⚠️ 此操作會清除所有 API 金鑰、稅率、刷新頻率、貨幣設定，並返回默認值。持倉數據不受影響。
+  </p>
+</div>
+
+  </div>
+</div>
+
+  
+</main>
+
     </main>
   </div>
 </div>
@@ -1014,6 +1347,47 @@
   </div>
 </div>
 
+<!-- Portfolio 管理 Modal -->
+<div id="portfolioModal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:99999; align-items:center; justify-content:center;">
+  <div style="width:92%; max-width:600px; background:#020617; border:1px solid #1f2937; border-radius:14px; padding:20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <div style="font-weight:600; font-size:15px;">📂 投資組合管理</div>
+      <button id="btnClosePortfolioModal" class="btn btn-outline" type="button">✕</button>
+    </div>
+
+    <!-- 新增 Portfolio -->
+    <div style="margin-bottom:20px; padding:12px; border-radius:10px; background:rgba(15,23,42,0.9); border:1px solid rgba(31,41,55,0.9);">
+      <div style="font-size:13px; margin-bottom:8px; color:#e5e7eb;">新增投資組合</div>
+      <div style="display:flex; gap:8px;">
+        <input 
+          id="input-new-portfolio-name" 
+          type="text" 
+          class="auth-input" 
+          placeholder="例如：美股成長、港股高息、加密貨幣"
+          style="flex:1;"
+        />
+        <button id="btn-create-portfolio" class="btn btn-primary" type="button">
+          ➕ 新增
+        </button>
+      </div>
+    </div>
+
+    <!-- Portfolio 列表 -->
+    <div style="font-size:13px; margin-bottom:8px; color:#9ca3af;">現有組合</div>
+    <div id="portfolio-list" style="max-height:300px; overflow-y:auto;">
+      <!-- 動態填充 -->
+    </div>
+  </div>
+</div>
+
+<script>
+  // 你的 JavaScript 代碼
+  ...
+</script>
+</body>
+</html>
+
+
 <script>
 console.clear();
 console.log('🚀 v4 App start');
@@ -1023,8 +1397,26 @@ var app = {
   supabase: null,
   user: null,
   editingHoldingId: null,
-  holdingsUIBound: false
+  holdingsUIBound: false,
+  chartPie: null,
+  chartLine: null,
+  refreshTimer: null,
+   chartPortfolioPie: null,
+  chartPortfolioLines: null,
+  // 匯率 cache
+  baseCurrency: 'USD',
+  displayCurrency: 'USD',
+  exchangeRates: {},
+  exchangeRatesUpdated: null,  // ✅ 加逗號
+  
+  // Portfolio
+  currentPortfolioId: null,    // ✅ 加逗號
+  portfolios: []
+  
+
 };
+
+
 
 window.onload = async function () {
   const SUPABASE_URL = 'https://umssuhublguujswugbps.supabase.co';
@@ -1160,39 +1552,76 @@ function showAuth() {
   
    destroyChart('chartPie');
    destroyChart('chartLine');
+     if (app.chartPortfolioPie) { app.chartPortfolioPie.destroy(); app.chartPortfolioPie = null; }
+  if (app.chartPortfolioLines) { app.chartPortfolioLines.destroy(); app.chartPortfolioLines = null; }
+	function showAuth() {
+  document.getElementById('authPage').style.display = 'flex';
+  document.getElementById('dashboardPage').style.display = 'none';
+  
+  destroyChart('chartPie');
+  destroyChart('chartLine');
+  
+  // ✅ 清理跨組合圖表
+  if (app.chartPortfolioPie) {
+    app.chartPortfolioPie.destroy();
+    app.chartPortfolioPie = null;
+  }
+}
 
 }
 
 async function showDashboard(user) {
   app.user = user;
-
+  
   document.getElementById('authPage').style.display = 'none';
   document.getElementById('dashboardPage').style.display = 'grid';
   document.getElementById('userEmail').textContent = user.email;
   document.getElementById('userIdBox').textContent = 'user_id: ' + user.id;
 
-bindSettingsUI();
-await loadSettingsAndApply();
+  // ✅ 先載入 portfolios
+  await loadPortfolios();
+  bindPortfolioSelector();
+  bindPortfolioManager();
 
+  bindPageNavigation();
+  bindPortfolioOverviewPage();  // ✅ 加呢行
+  bindAPIConfig();
+  bindCurrencySelector();
+  switchPage('dashboard');
 
-  // 綁定 holdings UI（只綁一次）
+  // ✅ 只有一個 apiNavItem
+  const apiNavItem = document.querySelector('.nav-item[data-page="api-config"]');
+  if (apiNavItem) {
+    apiNavItem.addEventListener('click', async () => {
+      await loadAPIKeys();
+      await loadCurrencySetting();
+	      displayExchangeRates();  // ✅ 加呢行
+    bindRatesDisplay();      // ✅ 加呢行
+	bindCalculator();      // ✅ 加呢行
+	bindResetSettings();  // ✅ 加呢行
+    await calculateExchange(); // ✅ 初始計算一次
+    });
+  }
+
+  bindSettingsUI();
+  await loadSettingsAndApply();
   bindHoldingsUI();
-
-  // 先 render holdings
   await loadHoldingsAndRender();
-
-bindSyncUI();
+  bindSyncUI();
   applyRefreshInterval(document.getElementById('refresh-interval')?.value || 'manual');
-// ✅ 綁定手動快照按鈕
+
   const btnSnapshot = document.getElementById('btnSaveSnapshot');
   if (btnSnapshot && !btnSnapshot.dataset.bound) {
     btnSnapshot.dataset.bound = '1';
     btnSnapshot.addEventListener('click', saveSnapshotManually);
   }
 
-  // 登入時自動存快照（如果今日未存過）
   await saveSnapshotIfNeeded();
+  bindUpdatePrices();  // ✅ 綁定更新價格按鈕
+
+
 }
+
 
 /* =========================
    Holdings (Portfolio) Logic
@@ -1224,7 +1653,7 @@ async function ensureDefaultPortfolio(userId) {
 async function loadHoldingsAndRender() {
   if (!app.user) return;
 
-  const portfolioId = await ensureDefaultPortfolio(app.user.id);
+const portfolioId = app.currentPortfolioId || await ensureDefaultPortfolio(app.user.id);
 
   const { data: rows, error } = await app.supabase
     .from('holdings')
@@ -1255,47 +1684,62 @@ async function loadHoldingsAndRender() {
   let totalValue = 0;
   let totalGain = 0;
 
-  rows.forEach(r => {
-    const qty = Number(r.quantity || 0);
-    const cost = Number(r.cost_price || 0);
-    const price = Number(r.current_price ?? r.cost_price ?? 0);
+for (const r of rows) {
+  const qty = Number(r.quantity || 0);
+  const cost = Number(r.cost_price || 0);
+  const price = Number(r.current_price ?? r.cost_price ?? 0);
 
-    const totalCost = qty * cost;
-    const currentValue = (r.current_value != null) ? Number(r.current_value) : qty * price;
-    const gain = (r.gain != null) ? Number(r.gain) : (currentValue - totalCost);
-    const gainPct = (r.gain_percent != null)
-      ? Number(r.gain_percent)
-      : (totalCost > 0 ? (gain / totalCost * 100) : 0);
+  const totalCost = qty * cost;
+  const currentValue = (r.current_value != null) ? Number(r.current_value) : qty * price;
+  const gain = (r.gain != null) ? Number(r.gain) : (currentValue - totalCost);
+  const gainPct = (r.gain_percent != null)
+    ? Number(r.gain_percent)
+    : (totalCost > 0 ? (gain / totalCost * 100) : 0);  // ✅
 
-    totalValue += currentValue;
-    totalGain += gain;
+  totalValue += currentValue;
+  totalGain += gain;
 
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${(r.symbol || '').toUpperCase()}</strong></td>
-      <td>${qty.toFixed(2)}</td>
-      <td>${cost.toFixed(2)}</td>
-      <td>${price.toFixed(2)}</td>
-      <td>${currentValue.toFixed(2)}</td>
-      <td style="color:${gain >= 0 ? '#4ade80' : '#ef4444'}"><strong>${gain.toFixed(2)}</strong></td>
-      <td style="color:${gainPct >= 0 ? '#4ade80' : '#ef4444'}"><strong>${gainPct.toFixed(2)}%</strong></td>
-      <td style="display:flex; gap:6px;">
-        <button class="btn btn-outline" type="button"
-          data-edit="${r.id}"
-          data-symbol="${(r.symbol || '').toUpperCase()}"
-          data-qty="${qty}"
-          data-cost="${cost}"
-          data-price="${price}"
-        >編輯</button>
+  // ✅ 用 formatCurrency 轉換
+// 單價：直接顯示 USD（唔轉換）
+const costStr = '$ ' + cost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const priceStr = '$ ' + price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-        <button class="btn btn-outline" type="button" data-del="${r.id}">刪除</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+// 總金額：轉換成顯示貨幣
+const valueStr = await formatCurrency(currentValue);
+const gainStr = await formatCurrency(gain);
 
-  document.getElementById('totalAssets').textContent = 'HK$ ' + totalValue.toFixed(2);
-  document.getElementById('totalGain').textContent = 'HK$ ' + totalGain.toFixed(2);
+
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><strong>${(r.symbol || '').toUpperCase()}</strong></td>
+    <td>${qty.toFixed(2)}</td>
+    <td>${costStr}</td>
+    <td>${priceStr}</td>
+    <td>${valueStr}</td>
+    <td style="color:${gain >= 0 ? '#4ade80' : '#ef4444'}"><strong>${gainStr}</strong></td>
+    <td style="color:${gainPct >= 0 ? '#4ade80' : '#ef4444'}"><strong>${gainPct.toFixed(2)}%</strong></td>
+    <td style="display:flex; gap:6px;">
+      <button class="btn btn-outline" type="button"
+        data-edit="${r.id}"
+        data-symbol="${(r.symbol || '').toUpperCase()}"
+        data-qty="${qty}"
+        data-cost="${cost}"
+        data-price="${price}"
+      >編輯</button>
+      <button class="btn btn-outline" type="button" data-del="${r.id}">刪除</button>
+    </td>
+  `;
+  tbody.appendChild(tr);
+}  // ✅
+
+// ✅ 更新總資產/總收益（for 循環外面）
+const totalAssetsStr = await formatCurrency(totalValue);
+const totalGainStr = await formatCurrency(totalGain);
+document.getElementById('totalAssets').textContent = totalAssetsStr;
+document.getElementById('totalGain').textContent = totalGainStr;
+
+
+
 
   // 事件委派：只綁一次
   if (!tbody.dataset.bound) {
@@ -1327,6 +1771,10 @@ async function loadHoldingsAndRender() {
   renderCharts(); // ✅ 每次重新 render holdings 都同步更新圖表
   // ✅ 每次更新 holdings 後，更新今日快照（如果已存在就覆蓋）
 
+// 更新被動收入（暫時顯示 0，之後接真實分紅數據）
+const passiveIncomeStr = await formatCurrency(0);
+const passiveIncomeEl = document.getElementById('passiveIncome');
+if (passiveIncomeEl) passiveIncomeEl.textContent = passiveIncomeStr;
 
 
 }
@@ -1348,7 +1796,7 @@ async function createHoldingFromModal() {
       return;
     }
 
-    const portfolioId = await ensureDefaultPortfolio(app.user.id);
+const portfolioId = app.currentPortfolioId || await ensureDefaultPortfolio(app.user.id);
 
     // 1) 先查有冇同 ticker（同一 portfolio）
     const { data: existingRows, error: qErr } = await app.supabase
@@ -1520,6 +1968,8 @@ function openHoldingModalForAdd() {
   openHoldingModal();
 }
 
+
+
 function closeHoldingModal() {
   document.getElementById('holdingModal').style.display = 'none';
   document.getElementById('mSymbol').value = '';
@@ -1650,24 +2100,30 @@ function parseRefreshIntervalToMs(v) {
 }
 
 function applyRefreshInterval(v) {
-  // 先清掉舊 timer（轉頻率/登出/重登入都安全）
+  // 清掉舊 timer
   if (app.refreshTimer) {
-    clearInterval(app.refreshTimer); // 清除由 setInterval 建立嘅重複任務 [web:50]
+    clearInterval(app.refreshTimer);
     app.refreshTimer = null;
   }
 
   const ms = parseRefreshIntervalToMs(v);
   if (!ms) return;
 
-  // 立即跑一次，之後按頻率跑
-  safeSyncOnce('auto');
+  // 判斷是否自動更新價格（15 分鐘或以上才更新）
+  const shouldUpdatePrices = (v === '15m' || v === '30m' || v === '1h');
+
+  // 立即跑一次
+  safeSyncOnce('auto', shouldUpdatePrices);
 
   app.refreshTimer = setInterval(() => {
-    safeSyncOnce('auto');
-  }, ms); // setInterval 會回傳 intervalID，之後用 clearInterval 取消 [web:53]
+    safeSyncOnce('auto', shouldUpdatePrices);
+  }, ms);
+
+  console.log(`⏰ 自動刷新已啟用：${v}${shouldUpdatePrices ? '（含價格更新）' : '（僅 UI）'}`);
 }
 
-async function safeSyncOnce(mode) {
+
+async function safeSyncOnce(mode, updatePrices = false) {
   if (!app.user) return;
 
   const btn = document.getElementById('btnManualSync');
@@ -1677,9 +2133,16 @@ async function safeSyncOnce(mode) {
       btn.textContent = '同步中...';
     }
 
+    // 1) 先更新價格（如果需要）
+    if (updatePrices) {
+      console.log('🔄 自動更新價格...');
+      await updateAllPricesQuiet(); // 靜默模式（不彈 alert）
+    }
+
+    // 2) 再 refresh UI
     await loadHoldingsAndRender();
 
-    // 用按鈕文字顯示最後同步時間（唔洗改 UI）
+    // 顯示最後同步時間
     const t = new Date();
     const hh = String(t.getHours()).padStart(2, '0');
     const mm = String(t.getMinutes()).padStart(2, '0');
@@ -1687,12 +2150,13 @@ async function safeSyncOnce(mode) {
     if (btn) btn.textContent = `🔄 手動同步（${hh}:${mm}:${ss}）`;
   } catch (e) {
     console.error('sync error:', e);
-    alert('同步失敗：' + (e.message || e));
+    if (mode === 'manual') alert('同步失敗：' + (e.message || e));
     if (btn) btn.textContent = '🔄 手動同步';
   } finally {
     if (btn) btn.disabled = false;
   }
 }
+
 
 function bindSyncUI() {
   const sel = document.getElementById('refresh-interval');
@@ -1734,6 +2198,1356 @@ function bindSyncUI() {
   }
 }
 
+// ===== Page Navigation =====
+function switchPage(pageName) {
+  document.querySelectorAll(".page-content").forEach((page) => {
+    page.style.display = "none";
+  });
+
+  const targetPage = document.getElementById("page-" + pageName);
+  if (!targetPage) {
+    console.error("[switchPage] page not found:", pageName);
+    // fallback：至少顯示 dashboard，避免空白
+    const dash = document.getElementById("page-dashboard");
+    if (dash) dash.style.display = "block";
+    return;
+  }
+
+  targetPage.style.display = "block";
+
+  document.querySelectorAll(".nav-item").forEach((item) => item.classList.remove("active"));
+  const activeItem = document.querySelector(`.nav-item[data-page="${pageName}"]`);
+  if (activeItem) activeItem.classList.add("active");
+}
+
+
+function bindPageNavigation() {
+  document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+    item.addEventListener('click', () => {
+      const pageName = item.getAttribute('data-page');
+      switchPage(pageName);
+    });
+  });
+}
+
+// 監聽進入跨組合總覽頁面
+function bindPortfolioOverviewPage() {
+  const navItem = document.querySelector('.nav-item[data-page="portfolio-overview"]');
+  if (!navItem || navItem.dataset.boundOverview) return;
+  navItem.dataset.boundOverview = "1";
+
+  navItem.addEventListener("click", async () => {
+    switchPage("portfolio-overview");
+    await loadPortfolioOverview();
+  });
+}
+
+
+
+
+// ===== API Keys Management =====
+// ===== API Keys Management =====
+async function loadAPIKeys() {
+  if (!app.user) return;
+
+  const { data } = await app.supabase
+    .from('settings')
+    .select('alpha_vantage_key, polygon_key, fmp_key')
+    .eq('user_id', app.user.id)
+    .maybeSingle();
+
+  if (data) {
+    document.getElementById('input-alpha-key').value = data.alpha_vantage_key || '';
+    document.getElementById('input-polygon-key').value = data.polygon_key || '';
+    document.getElementById('input-fmp-key').value = data.fmp_key || '';
+  }
+}
+
+async function saveAPIKeys() {
+  if (!app.user) return alert('❌ 未登入');
+
+  const btn = document.getElementById('btn-save-api-keys');
+  try {
+    btn.disabled = true;
+    btn.textContent = '保存中...';
+
+    const alphaKey = document.getElementById('input-alpha-key').value.trim();
+    const polygonKey = document.getElementById('input-polygon-key').value.trim();
+    const fmpKey = document.getElementById('input-fmp-key').value.trim();
+
+    const { error } = await app.supabase
+  .from('settings')
+  .upsert({
+    user_id: app.user.id,
+    alpha_vantage_key: alphaKey,
+    polygon_key: polygonKey,
+    fmp_key: fmpKey,
+    currency: document.getElementById('select-currency').value,  // ✅ 加呢行
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'user_id' });
+
+
+    if (error) throw error;
+
+    alert('✅ API 金鑰已保存');
+  } catch (e) {
+    console.error('保存 API keys 失敗:', e);
+    alert('保存失敗：' + (e.message || e));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '💾 保存 API 金鑰';
+  }
+}
+
+async function testAPIConnection() {
+  if (!app.user) return alert('❌ 未登入');
+
+  const btn = document.getElementById('btn-test-api');
+  try {
+    btn.disabled = true;
+    btn.textContent = '測試中...';
+
+    // 優先測試 FMP（因為你有 key）
+    const fmpKey = document.getElementById('input-fmp-key').value.trim();
+    if (fmpKey) {
+      const url = `https://financialmodelingprep.com/api/v3/quote/AAPL?apikey=${fmpKey}`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data && data.length > 0 && data[0].price) {
+        alert(`✅ FMP 連接成功！\n測試股票：AAPL\n現價：$${data[0].price}`);
+        return;
+      } else if (data.Error) {
+        alert('❌ FMP 錯誤：' + data['Error Message']);
+        return;
+      }
+    }
+
+    // 如果冇 FMP key，試 Alpha Vantage
+    const alphaKey = document.getElementById('input-alpha-key').value.trim();
+    if (alphaKey) {
+      const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=AAPL&apikey=${alphaKey}`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data['Global Quote'] && data['Global Quote']['05. price']) {
+        alert(`✅ Alpha Vantage 連接成功！\n測試股票：AAPL\n現價：$${data['Global Quote']['05. price']}`);
+        return;
+      } else if (data['Note']) {
+        alert('⚠️ Alpha Vantage 速率限制：' + data['Note']);
+        return;
+      }
+    }
+
+    alert('❌ 請先輸入至少一個 API key');
+  } catch (e) {
+    alert('測試失敗：' + (e.message || e));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🧪 測試連接（FMP）';
+  }
+}
+
+
+function bindAPIConfig() {
+  const btnSave = document.getElementById('btn-save-api-keys');
+  const btnTest = document.getElementById('btn-test-api');
+
+  if (btnSave && !btnSave.dataset.bound) {
+    btnSave.dataset.bound = '1';
+    btnSave.addEventListener('click', saveAPIKeys);
+  }
+
+  if (btnTest && !btnTest.dataset.bound) {
+    btnTest.dataset.bound = '1';
+    btnTest.addEventListener('click', testAPIConnection);
+  }
+}
+
+// ===== Currency & Exchange Rate =====
+
+// 貨幣符號對應
+const CURRENCY_SYMBOLS = {
+  'USD': '$',
+  'HKD': 'HK$',
+  'CNY': '¥',
+  'JPY': '¥',
+  'TWD': 'NT$',
+  'EUR': '€',
+  'GBP': '£'
+};
+
+// 獲取匯率（有 cache，24 小時內不重複請求）
+async function fetchExchangeRate(from, to) {
+  if (from === to) return 1;
+
+  const pair = from + to;
+  const now = Date.now();
+
+  // 檢查 cache（24 小時有效）
+  if (app.exchangeRates[pair] && app.exchangeRatesUpdated) {
+    const age = now - app.exchangeRatesUpdated;
+    if (age < 24 * 60 * 60 * 1000) {
+      console.log(`✅ 使用緩存匯率：${pair} = ${app.exchangeRates[pair]}`);
+      return app.exchangeRates[pair];
+    }
+  }
+
+  // 拉取匯率（用 FMP API）
+try {
+  // 用免費匯率 API（不需要 FMP key）
+  const url = `https://open.er-api.com/v6/latest/${from}`;
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (data && data.rates && data.rates[to]) {
+    const rate = data.rates[to];
+    app.exchangeRates[pair] = rate;
+    app.exchangeRatesUpdated = now;
+    console.log(`💱 更新匯率：${pair} = ${rate}`);
+    return rate;
+  } else {
+    console.warn('⚠️ 匯率 API 拉取失敗，使用固定匯率');
+    const fallbackRates = {
+      'USDHKD': 7.8,
+      'USDCNY': 7.2,
+      'USDJPY': 150,
+      'USDTWD': 31.5,
+      'USDEUR': 0.92,
+      'USDGBP': 0.79
+    };
+    app.exchangeRates[pair] = fallbackRates[pair] || 1;
+    return app.exchangeRates[pair];
+  }
+} catch (e) {
+  console.error('匯率拉取錯誤:', e);
+  const fallbackRates = {
+    'USDHKD': 7.8,
+    'USDCNY': 7.2,
+    'USDJPY': 150,
+    'USDTWD': 31.5,
+    'USDEUR': 0.92,
+    'USDGBP': 0.79
+  };
+  app.exchangeRates[pair] = fallbackRates[pair] || 1;
+  return app.exchangeRates[pair];
+}
+ 
+}
+
+// 統一格式化金額（轉換 + 顯示符號）
+async function formatCurrency(amount, skipConvert = false) {
+  if (!app.user) return '$' + amount.toFixed(2);
+
+  const displayCurrency = app.displayCurrency || 'HKD';
+  const symbol = CURRENCY_SYMBOLS[displayCurrency] || displayCurrency;
+
+  if (skipConvert || app.baseCurrency === displayCurrency) {
+    return symbol + ' ' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // 轉換匯率
+  const rate = await fetchExchangeRate(app.baseCurrency, displayCurrency);
+  const converted = amount * rate;
+
+  return symbol + ' ' + converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// 載入用戶貨幣設定
+async function loadCurrencySetting() {
+  if (!app.user) return;
+
+  const { data } = await app.supabase
+    .from('settings')
+    .select('currency')
+    .eq('user_id', app.user.id)
+    .maybeSingle();
+
+  app.displayCurrency = data?.currency || 'USD';;
+  document.getElementById('select-currency').value = app.displayCurrency;
+}
+
+// 保存貨幣設定
+async function saveCurrencySetting() {
+  if (!app.user) return;
+
+  const newCurrency = document.getElementById('select-currency').value;
+  app.displayCurrency = newCurrency;
+
+  const { error } = await app.supabase
+    .from('settings')
+    .upsert({
+      user_id: app.user.id,
+      currency: newCurrency,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+
+  if (error) {
+    console.error('保存貨幣失敗:', error);
+    return;
+  }
+
+  // 清除匯率 cache，強制重新拉取
+  app.exchangeRates = {};
+  app.exchangeRatesUpdated = null;
+
+  // 重新渲染所有顯示
+  await loadHoldingsAndRender();
+  await renderCharts();
+  
+  displayExchangeRates();  // ✅ 加呢行：更新匯率列表顯示
+}
+
+
+
+// 綁定貨幣選擇器
+function bindCurrencySelector() {
+  const sel = document.getElementById('select-currency');
+  if (sel && !sel.dataset.bound) {
+    sel.dataset.bound = '1';
+    sel.addEventListener('change', async () => {
+      await saveCurrencySetting();
+      alert('✅ 貨幣已切換，所有金額已更新');
+    });
+  }
+}
+
+// 顯示匯率列表（顯示所有支援貨幣對）
+async function displayExchangeRates() {
+  const tbody = document.getElementById('rates-table-body');
+  const displayCurrencyName = document.getElementById('display-currency-name');
+  const ratesUpdatedTime = document.getElementById('rates-updated-time');
+
+  if (!tbody) return;
+
+  displayCurrencyName.textContent = app.displayCurrency || 'HKD';
+
+  if (app.exchangeRatesUpdated) {
+    const d = new Date(app.exchangeRatesUpdated);
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    ratesUpdatedTime.textContent = `${d.getMonth()+1}/${d.getDate()} ${hh}:${mm}`;
+  } else {
+    ratesUpdatedTime.textContent = '未更新';
+  }
+
+  // 顯示所有支援貨幣（從 USD 轉換,如果你想加多啲貨幣（例如 SGD/AUD/CAD），可以改呢行）
+  const targetCurrencies = ['HKD', 'CNY', 'JPY', 'TWD', 'EUR', 'GBP'];
+  tbody.innerHTML = '';
+
+  for (const to of targetCurrencies) {
+    const pair = app.baseCurrency + to; // USDHKD
+    const displayPair = `${app.baseCurrency}-${to}`; // USD-HKD
+    
+    // 如果未載入，先拉取（不會阻塞 UI）
+    let rate = app.exchangeRates[pair];
+    if (!rate) {
+      // 非同步載入（不等待）
+      fetchExchangeRate(app.baseCurrency, to).then(r => {
+        displayExchangeRates(); // 載入完成後重新渲染
+      });
+      rate = '載入中...';
+    }
+
+    const source = (typeof rate === 'number' && app.exchangeRatesUpdated && Date.now() - app.exchangeRatesUpdated < 24*60*60*1000) 
+      ? 'API（實時）' 
+      : (typeof rate === 'number' ? '固定值' : '-');
+    
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${displayPair}</strong></td>
+      <td>${typeof rate === 'number' ? rate.toFixed(4) : rate}</td>
+      <td style="font-size:11px; color:var(--muted);">${source}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+// 匯率換算
+async function calculateExchange() {
+  const amountInput = document.getElementById('calc-amount');
+  const fromSelect = document.getElementById('calc-from');
+  const toSelect = document.getElementById('calc-to');
+  const resultDiv = document.getElementById('calc-result');
+
+  if (!amountInput || !fromSelect || !toSelect || !resultDiv) return;
+
+  const amount = Number(amountInput.value) || 0;
+  const from = fromSelect.value;
+  const to = toSelect.value;
+
+  if (amount <= 0) {
+    resultDiv.textContent = '-';
+    return;
+  }
+
+  if (from === to) {
+    const symbol = CURRENCY_SYMBOLS[to] || to;
+    resultDiv.textContent = symbol + ' ' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return;
+  }
+
+  try {
+    // 需要兩步轉換：from → USD → to
+    let amountInUSD = amount;
+    
+    // 1) 如果來源不是 USD，先轉成 USD
+    if (from !== 'USD') {
+      const rateToUSD = await fetchExchangeRate('USD', from);
+      amountInUSD = amount / rateToUSD; // 反向計算
+    }
+
+    // 2) 再從 USD 轉到目標貨幣
+    let result = amountInUSD;
+    if (to !== 'USD') {
+      const rateFromUSD = await fetchExchangeRate('USD', to);
+      result = amountInUSD * rateFromUSD;
+    }
+
+    const symbol = CURRENCY_SYMBOLS[to] || to;
+    resultDiv.textContent = symbol + ' ' + result.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    
+  } catch (e) {
+    console.error('換算失敗:', e);
+    resultDiv.textContent = '計算失敗';
+  }
+}
+
+// 綁定換算器事件
+function bindCalculator() {
+  const amountInput = document.getElementById('calc-amount');
+  const fromSelect = document.getElementById('calc-from');
+  const toSelect = document.getElementById('calc-to');
+
+  if (amountInput && !amountInput.dataset.bound) {
+    amountInput.dataset.bound = '1';
+    amountInput.addEventListener('input', calculateExchange);
+  }
+
+  if (fromSelect && !fromSelect.dataset.bound) {
+    fromSelect.dataset.bound = '1';
+    fromSelect.addEventListener('change', calculateExchange);
+  }
+
+  if (toSelect && !toSelect.dataset.bound) {
+    toSelect.dataset.bound = '1';
+    toSelect.addEventListener('change', calculateExchange);
+  }
+}
+
+// ===== Reset Settings =====
+async function resetAllSettings() {
+  if (!app.user) return alert('❌ 未登入');
+
+  // 二次確認
+  if (!confirm('⚠️ 確定要清除所有設定並重置為默認值？\n\n此操作會清除：\n- 所有 API 金鑰\n- 稅率/無風險利率\n- 刷新頻率\n- 顯示貨幣\n\n持倉數據不受影響。')) {
+    return;
+  }
+
+  if (!confirm('🚨 最後確認：真的要清除所有設定嗎？')) {
+    return;
+  }
+
+  const btn = document.getElementById('btn-reset-settings');
+  
+  try {
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '清除中...';
+    }
+
+    // 刪除 settings 記錄
+    const { error } = await app.supabase
+      .from('settings')
+      .delete()
+      .eq('user_id', app.user.id);
+
+    if (error) throw error;
+
+    // 清除前端 cache
+    app.displayCurrency = 'USD';
+    app.exchangeRates = {};
+    app.exchangeRatesUpdated = null;
+
+    // 清除定時器
+    if (app.refreshTimer) {
+      clearInterval(app.refreshTimer);
+      app.refreshTimer = null;
+    }
+
+    alert('✅ 設定已清除，頁面即將重新載入');
+
+    // 重新載入頁面
+    window.location.reload();
+
+  } catch (e) {
+    console.error('重置失敗:', e);
+    alert('重置失敗：' + (e.message || e));
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '🗑️ 清除所有設定並重置';
+    }
+  }
+}
+
+// 綁定重置按鈕
+function bindResetSettings() {
+  const btn = document.getElementById('btn-reset-settings');
+  if (btn && !btn.dataset.bound) {
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', resetAllSettings);
+  }
+}
+
+// ===== Portfolio Management =====
+
+// 載入用戶所有 portfolios
+async function loadPortfolios() {
+  if (!app.user) return;
+
+  const { data, error } = await app.supabase
+    .from('portfolios')
+    .select('id, portfolio_name, created_at')
+    .eq('user_id', app.user.id)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('載入 portfolios 失敗:', error);
+    return;
+  }
+
+  app.portfolios = data || [];
+
+  // 渲染 dropdown
+  const selector = document.getElementById('portfolio-selector');
+  if (!selector) return;
+
+  selector.innerHTML = '';
+
+  if (app.portfolios.length === 0) {
+    // 如果沒有，自動建一個
+    const defaultId = await ensureDefaultPortfolio(app.user.id);
+    app.currentPortfolioId = defaultId;
+    await loadPortfolios(); // 重新載入
+    return;
+  }
+
+  app.portfolios.forEach(p => {
+    const option = document.createElement('option');
+    option.value = p.id;
+    option.textContent = p.portfolio_name || 'Untitled Portfolio';
+    selector.appendChild(option);
+  });
+
+  // 默認選第一個
+  if (!app.currentPortfolioId && app.portfolios.length > 0) {
+    app.currentPortfolioId = app.portfolios[0].id;
+  }
+
+  selector.value = app.currentPortfolioId;
+}
+
+// 切換 portfolio
+async function switchPortfolio(portfolioId) {
+  if (!portfolioId || portfolioId === app.currentPortfolioId) return;
+
+  app.currentPortfolioId = portfolioId;
+  console.log('🔄 切換到 portfolio:', portfolioId);
+
+  // 重新載入所有數據
+  await loadHoldingsAndRender();
+  await renderCharts();
+}
+
+// 綁定 portfolio selector
+function bindPortfolioSelector() {
+  const selector = document.getElementById('portfolio-selector');
+  if (selector && !selector.dataset.bound) {
+    selector.dataset.bound = '1';
+    selector.addEventListener('change', async () => {
+      await switchPortfolio(selector.value);
+    });
+  }
+}
+
+// Portfolio 管理 Modal（新增/刪除/重命名）
+// ===== Portfolio Manager Modal =====
+
+function openPortfolioManager() {
+  document.getElementById('portfolioModal').style.display = 'flex';
+  renderPortfolioList();
+}
+
+function closePortfolioManager() {
+  document.getElementById('portfolioModal').style.display = 'none';
+  document.getElementById('input-new-portfolio-name').value = '';
+}
+
+// 渲染 portfolio 列表
+function renderPortfolioList() {
+  const container = document.getElementById('portfolio-list');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  if (app.portfolios.length === 0) {
+    container.innerHTML = '<p style="text-align:center; color:var(--muted); padding:20px;">暫無組合</p>';
+    return;
+  }
+
+  app.portfolios.forEach(p => {
+    const isActive = p.id === app.currentPortfolioId;
+    
+    const item = document.createElement('div');
+    item.style.cssText = `
+      display:flex; 
+      align-items:center; 
+      justify-content:space-between; 
+      padding:10px 12px; 
+      margin-bottom:8px; 
+      border-radius:8px; 
+      background:${isActive ? 'rgba(59,130,246,0.15)' : 'rgba(15,23,42,0.95)'};
+      border:1px solid ${isActive ? 'rgba(59,130,246,0.4)' : 'rgba(31,41,55,0.9)'};
+    `;
+
+    item.innerHTML = `
+      <div style="flex:1;">
+        <div style="font-size:13px; font-weight:${isActive ? '600' : '400'}; color:${isActive ? '#e5e7eb' : '#9ca3af'};">
+          ${p.portfolio_name || 'Untitled Portfolio'}
+          ${isActive ? '<span style="font-size:11px; margin-left:6px; color:#22c55e;">（當前）</span>' : ''}
+        </div>
+        <div style="font-size:11px; color:#6b7280; margin-top:2px;">
+          建立於：${new Date(p.created_at).toLocaleDateString('zh-HK')}
+        </div>
+      </div>
+      
+      <div style="display:flex; gap:6px;">
+        <button class="btn btn-outline" style="font-size:11px; padding:4px 8px;" data-rename="${p.id}">
+          ✏️ 重命名
+        </button>
+        <button class="btn btn-outline" style="font-size:11px; padding:4px 8px; color:var(--danger); border-color:var(--danger);" data-delete="${p.id}">
+          🗑️ 刪除
+        </button>
+      </div>
+    `;
+
+    container.appendChild(item);
+  });
+
+  // 綁定事件（事件委派）
+  container.querySelectorAll('[data-rename]').forEach(btn => {
+    btn.addEventListener('click', () => renamePortfolio(btn.dataset.rename));
+  });
+
+  container.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.addEventListener('click', () => deletePortfolio(btn.dataset.delete));
+  });
+}
+
+// 新增 portfolio
+async function createPortfolio() {
+  if (!app.user) return;
+
+  const input = document.getElementById('input-new-portfolio-name');
+  const name = input.value.trim();
+
+  if (!name) {
+    alert('請輸入組合名稱');
+    return;
+  }
+
+  try {
+    const { error } = await app.supabase
+      .from('portfolios')
+      .insert([{
+        user_id: app.user.id,
+        portfolio_name: name
+      }]);
+
+    if (error) throw error;
+
+    alert('✅ 組合已新增');
+    input.value = '';
+    
+    await loadPortfolios(); // 重新載入
+    renderPortfolioList();  // 刷新列表
+  } catch (e) {
+    console.error('新增 portfolio 失敗:', e);
+    alert('新增失敗：' + (e.message || e));
+  }
+}
+
+// 重命名 portfolio
+async function renamePortfolio(id) {
+  if (!app.user) return;
+
+  const portfolio = app.portfolios.find(p => p.id === id);
+  if (!portfolio) return;
+
+  const newName = prompt('輸入新名稱：', portfolio.portfolio_name);
+  if (!newName || newName.trim() === '') return;
+
+  try {
+    const { error } = await app.supabase
+      .from('portfolios')
+      .update({ portfolio_name: newName.trim() })
+      .eq('id', id)
+      .eq('user_id', app.user.id);
+
+    if (error) throw error;
+
+    alert('✅ 已重命名');
+    
+    await loadPortfolios();
+    renderPortfolioList();
+  } catch (e) {
+    console.error('重命名失敗:', e);
+    alert('重命名失敗：' + (e.message || e));
+  }
+}
+
+// 刪除 portfolio
+async function deletePortfolio(id) {
+  if (!app.user) return;
+
+  const portfolio = app.portfolios.find(p => p.id === id);
+  if (!portfolio) return;
+
+  // 檢查是否有持倉
+  const { data: holdings } = await app.supabase
+    .from('holdings')
+    .select('id')
+    .eq('user_id', app.user.id)
+    .eq('portfolio_id', id);
+
+  const hasHoldings = holdings && holdings.length > 0;
+
+  let confirmMsg = `確定要刪除組合「${portfolio.portfolio_name}」嗎？`;
+  if (hasHoldings) {
+    confirmMsg += `\n\n⚠️ 此組合有 ${holdings.length} 筆持倉，刪除後會同時清除所有持倉和快照！`;
+  }
+
+  if (!confirm(confirmMsg)) return;
+  if (hasHoldings && !confirm('🚨 最後確認：真的要刪除此組合及所有持倉嗎？')) return;
+
+  try {
+    // Supabase 會自動級聯刪除（因為你有 on delete cascade）
+    const { error } = await app.supabase
+      .from('portfolios')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', app.user.id);
+
+    if (error) throw error;
+
+    alert('✅ 組合已刪除');
+
+    // 如果刪除的是當前 portfolio，切換到第一個
+    if (id === app.currentPortfolioId) {
+      app.currentPortfolioId = null;
+    }
+
+    await loadPortfolios();
+    renderPortfolioList();
+    
+    // 刷新 holdings
+    await loadHoldingsAndRender();
+    await renderCharts();
+
+  } catch (e) {
+    console.error('刪除失敗:', e);
+    alert('刪除失敗：' + (e.message || e));
+  }
+}
+
+function bindPortfolioManager() {
+  const btnManage = document.getElementById('btn-manage-portfolios');
+  const btnClose = document.getElementById('btnClosePortfolioModal');
+  const btnCreate = document.getElementById('btn-create-portfolio');
+
+  if (btnManage && !btnManage.dataset.bound) {
+    btnManage.dataset.bound = '1';
+    btnManage.addEventListener('click', openPortfolioManager);
+  }
+
+  if (btnClose && !btnClose.dataset.bound) {
+    btnClose.dataset.bound = '1';
+    btnClose.addEventListener('click', closePortfolioManager);
+  }
+
+  if (btnCreate && !btnCreate.dataset.bound) {
+    btnCreate.dataset.bound = '1';
+    btnCreate.addEventListener('click', createPortfolio);
+  }
+
+  // Enter 鍵快捷新增
+  const input = document.getElementById('input-new-portfolio-name');
+  if (input && !input.dataset.bound) {
+    input.dataset.bound = '1';
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') createPortfolio();
+    });
+  }
+}
+
+// ===== Portfolio Overview (跨組合總覽) =====
+
+async function loadPortfolioOverview() {
+  console.log('🔵 loadPortfolioOverview START, portfolios:', app.portfolios.length);
+  if (!app.user || app.portfolios.length === 0) {
+    console.log('⚠️ 沒有用戶或組合');
+    return;
+  }
+  try {
+    let grandTotalValue = 0;
+    let grandTotalGain = 0;
+    let grandHoldingsCount = 0;
+
+    const tableData = [];
+
+    // 逐個 portfolio 拉數據
+    for (const p of app.portfolios) {
+      const { data: holdings } = await app.supabase
+        .from('holdings')
+        .select('current_value, gain')
+        .eq('user_id', app.user.id)
+        .eq('portfolio_id', p.id);
+
+      let pValue = 0;
+      let pGain = 0;
+
+      if (holdings && holdings.length > 0) {
+        holdings.forEach(h => {
+          pValue += Number(h.current_value || 0);
+          pGain += Number(h.gain || 0);
+        });
+      }
+
+      const pCost = pValue - pGain;
+      const pGainPct = pCost > 0 ? (pGain / pCost * 100) : 0;
+
+      grandTotalValue += pValue;
+      grandTotalGain += pGain;
+      grandHoldingsCount += (holdings ? holdings.length : 0);
+
+      tableData.push({
+        id: p.id,
+        name: p.portfolio_name,
+        value: pValue,
+        gain: pGain,
+        gainPct: pGainPct,
+        count: holdings ? holdings.length : 0
+      });
+    }
+
+    // 更新總資產卡片
+    const totalAssetsStr = await formatCurrency(grandTotalValue);
+    const totalGainStr = await formatCurrency(grandTotalGain);
+    const grandCost = grandTotalValue - grandTotalGain;
+    const grandGainPct = grandCost > 0 ? (grandTotalGain / grandCost * 100) : 0;
+
+    document.getElementById('overview-total-assets').textContent = totalAssetsStr;
+    document.getElementById('overview-total-gain').textContent = totalGainStr;
+    document.getElementById('overview-total-gain-pct').textContent = grandGainPct.toFixed(2) + '%';
+    document.getElementById('overview-total-gain-pct').className = 'metric-change ' + (grandGainPct >= 0 ? 'up' : '');
+    document.getElementById('overview-portfolios-count').textContent = `包含 ${app.portfolios.length} 個組合`;
+    document.getElementById('overview-holdings-count').textContent = grandHoldingsCount;
+
+    // 渲染對比表
+    renderPortfolioComparisonTable(tableData, grandTotalValue);
+
+    // 渲染圖表
+    renderPortfolioPieChart(tableData);
+await renderPortfolioLinesChart();
+
+  } catch (e) {
+    console.error('loadPortfolioOverview error:', e);
+  }
+}
+
+// 渲染對比表
+async function renderPortfolioComparisonTable(data, grandTotal) {
+  const tbody = document.getElementById('portfolio-comparison-tbody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  if (data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--muted); padding:20px;">暫無組合</td></tr>';
+    return;
+  }
+
+  for (const p of data) {
+    const valueStr = await formatCurrency(p.value);
+    const gainStr = await formatCurrency(p.gain);
+    const percentage = grandTotal > 0 ? ((p.value / grandTotal) * 100).toFixed(1) : 0;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${p.name}</strong></td>
+      <td>${valueStr}</td>
+      <td style="color:${p.gain >= 0 ? '#4ade80' : '#ef4444'}"><strong>${gainStr}</strong></td>
+      <td style="color:${p.gainPct >= 0 ? '#4ade80' : '#ef4444'}"><strong>${p.gainPct.toFixed(2)}%</strong></td>
+      <td>${p.count}</td>
+      <td>${percentage}%</td>
+      <td>
+        <button class="btn btn-outline" style="font-size:11px; padding:4px 8px;" data-switch="${p.id}">
+          切換
+        </button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  // 綁定切換按鈕
+  tbody.querySelectorAll('[data-switch]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const portfolioId = btn.dataset.switch;
+      
+      // 切換 portfolio
+      app.currentPortfolioId = portfolioId;
+      document.getElementById('portfolio-selector').value = portfolioId;
+      
+      // 返回儀表板
+      switchPage('dashboard');
+      
+      // 刷新數據
+      await loadHoldingsAndRender();
+      await renderCharts();
+    });
+  });
+}
+
+// 資產分佈餅圖（按組合）
+function renderPortfolioPieChart(data) {
+  const ctx = document.getElementById('chartPortfolioPie');
+  if (!ctx) return;
+
+  if (app.chartPortfolioPie) {
+    app.chartPortfolioPie.destroy();
+  }
+
+  if (data.length === 0) return;
+
+  const labels = data.map(p => p.name);
+  const values = data.map(p => p.value);
+  const colors = ['#3b82f6', '#22c55e', '#eab308', '#ef4444', '#8b5cf6', '#ec4899'];
+
+  app.chartPortfolioPie = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors.slice(0, labels.length),
+        borderColor: '#020617',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { color: '#e5e7eb', font: { size: 11 } }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const label = ctx.label || '';
+              const value = ctx.parsed || 0;
+              const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+              const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+              
+              const displayCurrency = app.displayCurrency || 'USD';
+              const symbol = CURRENCY_SYMBOLS[displayCurrency] || displayCurrency;
+              const pair = app.baseCurrency + displayCurrency;
+              const rate = app.exchangeRates[pair] || 1;
+              const converted = value * rate;
+              
+              return `${label}: ${symbol} ${converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+async function renderPortfolioLinesChart() {
+  const canvas = document.getElementById("chartPortfolioLines");
+  if (!canvas) return;
+
+  // 清掉舊圖
+  if (app.chartPortfolioLines) {
+    app.chartPortfolioLines.destroy();
+    app.chartPortfolioLines = null;
+  }
+
+  if (!app.user || !app.portfolios || app.portfolios.length === 0) return;
+
+  // 近 30 日（用 YYYY-MM-DD 字串）
+  const start = new Date();
+  start.setDate(start.getDate() - 29);
+  const startDate = start.toISOString().slice(0, 10);
+
+  // 先算一次匯率（snapshots 的 totalvalue 係 baseCurrency；顯示用 displayCurrency）
+  const displayCurrency = app.displayCurrency || "USD";
+  const symbol = (typeof CURRENCY_SYMBOLS !== "undefined" && CURRENCY_SYMBOLS[displayCurrency]) ? CURRENCY_SYMBOLS[displayCurrency] : displayCurrency;
+  const rate = await fetchExchangeRate(app.baseCurrency || "USD", displayCurrency);
+
+  // 拉所有 portfolios 各自 snapshots（最多 30 筆）
+  const byPortfolio = [];
+  const dateSet = new Set();
+
+  for (const p of app.portfolios) {
+    const { data: rows, error } = await app.supabase
+      .from("portfoliosnapshots")
+      .select("snapshotdate,totalvalue")
+      .eq("userid", app.user.id)
+      .eq("portfolioid", p.id)
+      .gte("snapshotdate", startDate)
+      .order("snapshotdate", { ascending: true })
+      .limit(30);
+
+    if (error) {
+      console.error("renderPortfolioLinesChart snapshots error:", error);
+      continue;
+    }
+
+    const map = new Map();
+    (rows || []).forEach(r => {
+      const d = r.snapshotdate; // YYYY-MM-DD
+      dateSet.add(d);
+      const v = Number(r.totalvalue || 0) * (rate || 1);
+      map.set(d, v);
+    });
+
+    byPortfolio.push({ name: p.portfolioname || "Untitled", map });
+  }
+
+  const labelsISO = Array.from(dateSet).sort(); // YYYY-MM-DD
+  if (labelsISO.length === 0) {
+    // 無快照就唔畫（你亦可以改成顯示 placeholder）
+    return;
+  }
+
+  const labels = labelsISO.map(s => {
+    const d = new Date(s);
+    return `${d.getMonth() + 1}/${d.getDate()}`;
+  });
+
+  const palette = ["#3b82f6","#22c55e","#eab308","#ef4444","#8b5cf6","#ec4899","#06b6d4","#f97316","#10b981","#6366f1"];
+
+  const datasets = byPortfolio.map((p, idx) => {
+    const data = labelsISO.map(d => (p.map.has(d) ? p.map.get(d) : null)); // 缺日子用 null
+    return {
+      label: p.name,
+      data,
+      borderColor: palette[idx % palette.length],
+      backgroundColor: "transparent",
+      borderWidth: 2,
+      tension: 0.25,
+      pointRadius: 2,
+      pointHoverRadius: 5,
+      spanGaps: false
+    };
+  });
+
+  app.chartPortfolioLines = new Chart(canvas, {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "bottom", labels: { color: "#e5e7eb", font: { size: 11 } } },
+        tooltip: {
+          mode: "index",
+          intersect: false,
+          callbacks: {
+            label: (ctx) => {
+              const v = ctx.parsed.y;
+              if (v === null || typeof v === "undefined") return `${ctx.dataset.label}: -`;
+              return `${ctx.dataset.label}: ${symbol} ${Number(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: "#9ca3af", font: { size: 10 } }, grid: { color: "#1f2937" } },
+        y: {
+          ticks: {
+            color: "#9ca3af",
+            font: { size: 10 },
+            callback: (value) => `${symbol}${Number(value).toLocaleString("en-US")}`
+          },
+          grid: { color: "#1f2937" }
+        }
+      }
+    }
+  });
+}
+
+
+// ===== Batch Update Prices =====
+
+// 延遲函數（用於速率控制）
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// 用 Alpha Vantage 拉單一股票價格
+async function fetchStockPrice(symbol, apiKey) {
+  const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`;
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (data['Global Quote'] && data['Global Quote']['05. price']) {
+    return Number(data['Global Quote']['05. price']);
+  } else if (data['Note']) {
+    throw new Error('API 速率限制：' + data['Note']);
+  } else if (data['Error Message']) {
+    throw new Error(data['Error Message']);
+  } else {
+    throw new Error('無法取得價格');
+  }
+}
+
+// 批量更新所有持倉現價
+async function updateAllPrices() {
+  if (!app.user) return alert('❌ 未登入');
+
+  const btn = document.getElementById('btnUpdatePrices');
+  
+  try {
+    // 1) 取得 API key
+    const { data: settings } = await app.supabase
+      .from('settings')
+      .select('alpha_vantage_key')
+      .eq('user_id', app.user.id)
+      .maybeSingle();
+
+    const apiKey = settings?.alpha_vantage_key;
+    if (!apiKey) {
+      alert('❌ 請先在「🔑 API 配置」設置 Alpha Vantage API key');
+      return;
+    }
+
+    // 2) 取得所有持倉
+const portfolioId = app.currentPortfolioId || await ensureDefaultPortfolio(app.user.id);
+    const { data: holdings } = await app.supabase
+      .from('holdings')
+      .select('id, symbol, quantity, cost_price')
+      .eq('user_id', app.user.id)
+      .eq('portfolio_id', portfolioId);
+
+    if (!holdings || holdings.length === 0) {
+      alert('❌ 沒有持倉需要更新');
+      return;
+    }
+
+    const total = holdings.length;
+    let updated = 0;
+    let failed = 0;
+
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = `更新中 0/${total}`;
+    }
+
+    // 3) 逐個更新（每次間隔 12 秒，避免超速率限制）
+    for (const h of holdings) {
+      try {
+        const newPrice = await fetchStockPrice(h.symbol, apiKey);
+        
+        // 計算新的 current_value / gain / gain_percent
+        const qty = Number(h.quantity || 0);
+        const cost = Number(h.cost_price || 0);
+        const currentValue = qty * newPrice;
+        const totalCost = qty * cost;
+        const gain = currentValue - totalCost;
+        const gainPercent = totalCost > 0 ? (gain / totalCost * 100) : 0;
+
+        // 更新到 DB
+        const { error } = await app.supabase
+          .from('holdings')
+          .update({
+            current_price: newPrice,
+            current_value: currentValue,
+            gain: gain,
+            gain_percent: gainPercent
+          })
+          .eq('id', h.id)
+          .eq('user_id', app.user.id);
+
+        if (error) throw error;
+
+        updated++;
+        console.log(`✅ ${h.symbol}: $${newPrice}`);
+
+      } catch (e) {
+        console.error(`❌ ${h.symbol} 更新失敗:`, e.message);
+        failed++;
+      }
+
+      // 更新按鈕進度
+      if (btn) {
+        btn.textContent = `更新中 ${updated + failed}/${total}`;
+      }
+
+      // Alpha Vantage 免費版：5 calls/min = 每 12 秒一次
+      // 如果不是最後一個，等待 12 秒
+      if (updated + failed < total) {
+        await delay(12000);
+      }
+    }
+
+    // 4) 完成後刷新 UI
+    await loadHoldingsAndRender();
+    await renderCharts();
+
+    alert(`✅ 更新完成\n成功：${updated}\n失敗：${failed}`);
+
+  } catch (e) {
+    console.error('批量更新失敗:', e);
+    alert('更新失敗：' + (e.message || e));
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '💹 更新所有現價';
+    }
+  }
+}
+
+// 靜默更新（給自動刷新用，不彈 alert）
+async function updateAllPricesQuiet() {
+  if (!app.user) return;
+
+  try {
+    const { data: settings } = await app.supabase
+      .from('settings')
+      .select('alpha_vantage_key')
+      .eq('user_id', app.user.id)
+      .maybeSingle();
+
+    const apiKey = settings?.alpha_vantage_key;
+    if (!apiKey) {
+      console.warn('⚠️ 未設置 Alpha Vantage key，跳過價格更新');
+      return;
+    }
+
+const portfolioId = app.currentPortfolioId || await ensureDefaultPortfolio(app.user.id);
+    const { data: holdings } = await app.supabase
+      .from('holdings')
+      .select('id, symbol, quantity, cost_price')
+      .eq('user_id', app.user.id)
+      .eq('portfolio_id', portfolioId);
+
+    if (!holdings || holdings.length === 0) return;
+
+    const total = holdings.length;
+    let updated = 0;
+
+    for (const h of holdings) {
+      try {
+        const newPrice = await fetchStockPrice(h.symbol, apiKey);
+        
+        const qty = Number(h.quantity || 0);
+        const cost = Number(h.cost_price || 0);
+        const currentValue = qty * newPrice;
+        const totalCost = qty * cost;
+        const gain = currentValue - totalCost;
+        const gainPercent = totalCost > 0 ? (gain / totalCost * 100) : 0;
+
+        await app.supabase
+          .from('holdings')
+          .update({
+            current_price: newPrice,
+            current_value: currentValue,
+            gain: gain,
+            gain_percent: gainPercent
+          })
+          .eq('id', h.id)
+          .eq('user_id', app.user.id);
+
+        updated++;
+        console.log(`✅ ${h.symbol}: $${newPrice}`);
+
+      } catch (e) {
+        console.error(`❌ ${h.symbol}:`, e.message);
+      }
+
+      // Alpha Vantage 速率控制：每 12 秒一次
+      if (updated < total) {
+        await delay(12000);
+      }
+    }
+
+    console.log(`💹 價格更新完成：${updated}/${total}`);
+
+  } catch (e) {
+    console.error('updateAllPricesQuiet error:', e);
+  }
+}
+
+
+// 綁定按鈕
+function bindUpdatePrices() {
+  const btn = document.getElementById('btnUpdatePrices');
+  if (btn && !btn.dataset.bound) {
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', updateAllPrices);
+  }
+}
+
+
+// 手動刷新匯率
+async function refreshExchangeRates() {
+  const btn = document.getElementById('btn-refresh-rates');
+  
+  try {
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '刷新中...';
+    }
+
+    // 清除 cache
+    app.exchangeRates = {};
+    app.exchangeRatesUpdated = null;
+
+    // 重新拉取當前顯示貨幣的匯率
+    const displayCurrency = app.displayCurrency || 'HKD';
+    if (displayCurrency !== app.baseCurrency) {
+      await fetchExchangeRate(app.baseCurrency, displayCurrency);
+    }
+
+    // 更新顯示
+    displayExchangeRates();
+    
+    alert('✅ 匯率已更新');
+  } catch (e) {
+    console.error('刷新匯率失敗:', e);
+    alert('刷新失敗：' + (e.message || e));
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '🔄 刷新匯率';
+    }
+  }
+}
+
+// 綁定刷新按鈕
+function bindRatesDisplay() {
+  const btn = document.getElementById('btn-refresh-rates');
+  if (btn && !btn.dataset.bound) {
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', refreshExchangeRates);
+  }
+}
+
+
 // ===== Charts =====
 app.chartPie = null;
 app.chartLine = null;
@@ -1746,7 +3560,7 @@ function renderCharts() {
 async function renderPieChart() {
   if (!app.user) return;
 
-  const portfolioId = await ensureDefaultPortfolio(app.user.id);
+const portfolioId = app.currentPortfolioId || await ensureDefaultPortfolio(app.user.id);
 
   const { data: rows } = await app.supabase
   .from('holdings')
@@ -1796,17 +3610,27 @@ async function renderPieChart() {
           position: 'right',
           labels: { color: '#e5e7eb', font: { size: 11 } }
         },
-        tooltip: {
-          callbacks: {
-            label: function(ctx) {
-              const label = ctx.label || '';
-              const value = ctx.parsed || 0;
-              const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
-              const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-              return `${label}: HK$ ${value.toFixed(2)} (${pct}%)`;
-            }
-          }
-        }
+tooltip: {
+  callbacks: {
+    label: function(ctx) {
+      const label = ctx.label || '';
+      const value = ctx.parsed || 0;
+      const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+      const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+      
+      // ✅ 同步轉換
+      const displayCurrency = app.displayCurrency || 'HKD';
+      const symbol = CURRENCY_SYMBOLS[displayCurrency] || displayCurrency;
+      const pair = app.baseCurrency + displayCurrency;
+      const rate = app.exchangeRates[pair] || 1;
+      const converted = value * rate;
+      
+      return `${label}: ${symbol} ${converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${pct}%)`;
+    }
+  }
+}
+
+
       }
     }
   });
@@ -1816,7 +3640,7 @@ async function renderLineChart() {
   if (!app.user) return;
 
   try {
-    const portfolioId = await ensureDefaultPortfolio(app.user.id);
+const portfolioId = app.currentPortfolioId || await ensureDefaultPortfolio(app.user.id);
 
     // 讀取最近 30 日快照
     const { data: snapshots } = await app.supabase
@@ -1847,13 +3671,20 @@ async function renderLineChart() {
       }
       data[data.length - 1] = totalAssets;
     } else {
-      // 使用真實快照數據
-      snapshots.forEach(s => {
-        const d = new Date(s.snapshot_date);
-        labels.push(`${d.getMonth() + 1}/${d.getDate()}`);
-        data.push(Number(s.total_value || 0));
-      });
-    }
+  // ✅ 使用真實快照數據（要轉換）
+  const displayCurrency = app.displayCurrency || 'HKD';
+  const pair = app.baseCurrency + displayCurrency;
+  const rate = app.exchangeRates[pair] || 1;
+  
+  snapshots.forEach(s => {
+    const d = new Date(s.snapshot_date);
+    labels.push(`${d.getMonth() + 1}/${d.getDate()}`);
+    
+    const valueUSD = Number(s.total_value || 0);
+    const converted = valueUSD * rate;  // ✅ 轉換
+    data.push(converted);
+  });
+}
 
     const ctx = document.getElementById('chartLine');
     if (!ctx) return;
@@ -1883,31 +3714,37 @@ async function renderLineChart() {
         plugins: {
           legend: { display: false },
           tooltip: {
-            mode: 'index',
-            intersect: false,
-            callbacks: {
-              label: function(ctx) {
-                return `總資產: HK$ ${ctx.parsed.y.toFixed(2)}`;
-              }
-            }
-          }
+  mode: 'index',
+  intersect: false,
+  callbacks: {
+    label: function(ctx) {
+      const displayCurrency = app.displayCurrency || 'HKD';
+      const symbol = CURRENCY_SYMBOLS[displayCurrency] || displayCurrency;
+      return `總資產: ${symbol} ${ctx.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+  }
+}
+
         },
         scales: {
-          x: {
-            ticks: { color: '#9ca3af', font: { size: 10 } },
-            grid: { color: '#1f2937' }
-          },
-          y: {
-            ticks: {
-              color: '#9ca3af',
-              font: { size: 10 },
-              callback: function(value) {
-                return 'HK$ ' + value.toLocaleString();
-              }
-            },
-            grid: { color: '#1f2937' }
-          }
-        }
+  x: {
+    ticks: { color: '#9ca3af', font: { size: 10 } },
+    grid: { color: '#1f2937' }
+  },
+  y: {
+    ticks: {
+      color: '#9ca3af',
+      font: { size: 10 },
+      callback: function(value) {
+        const displayCurrency = app.displayCurrency || 'HKD';
+        const symbol = CURRENCY_SYMBOLS[displayCurrency] || displayCurrency;
+        return symbol + ' ' + value.toLocaleString();
+      }
+    },
+    grid: { color: '#1f2937' }
+  }
+}
+
       }
     });
   } catch (e) {
@@ -1940,7 +3777,7 @@ async function saveSnapshotIfNeeded() {
   if (!app.user) return;
 
   try {
-    const portfolioId = await ensureDefaultPortfolio(app.user.id);
+const portfolioId = app.currentPortfolioId || await ensureDefaultPortfolio(app.user.id);
     const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 
     // 檢查今日有冇快照
@@ -2011,7 +3848,7 @@ async function saveSnapshotManually() {
       btn.textContent = '保存中...';
     }
 
-    const portfolioId = await ensureDefaultPortfolio(app.user.id);
+const portfolioId = app.currentPortfolioId || await ensureDefaultPortfolio(app.user.id);
     const today = new Date().toISOString().slice(0, 10);
 
     // 計算當前總資產 / 總收益
@@ -2072,7 +3909,7 @@ async function saveSnapshotManually() {
 async function renderPieChart() {
   if (!app.user) return;
 
-  const portfolioId = await ensureDefaultPortfolio(app.user.id);
+const portfolioId = app.currentPortfolioId || await ensureDefaultPortfolio(app.user.id);
 
   const { data: rows } = await app.supabase
   .from('holdings')
